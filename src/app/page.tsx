@@ -1,9 +1,17 @@
-import Image from "next/image";
+import { VideoEditorPanel } from '@/components/video-editor-panel';
+import { VoiceAssistantPanel } from '@/components/voice-assistant-panel';
+import { ResizablePanels } from '@/components/resizable-panels';
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      
+    <div className="dark h-screen w-screen overflow-hidden text-foreground bg-neutral-300">
+      <ResizablePanels
+        leftPanel={<VideoEditorPanel />}
+        rightPanel={<VoiceAssistantPanel />}
+        initialLeftWidth={70}
+        minLeftWidth={40}
+        minRightWidth={25}
+      />
     </div>
   );
 }
