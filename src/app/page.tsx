@@ -1,5 +1,5 @@
 import { VideoEditorPanel } from '@/components/video-editor-panel';
-import { VoiceAssistantPanel } from '@/components/voice-assistant-panel';
+import { VoiceAssistantPanel } from '@/components/voice-assistant-container';
 import { ResizablePanels } from '@/components/resizable-panels';
 
 export default function Home() {
