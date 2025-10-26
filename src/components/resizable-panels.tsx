@@ -2,18 +2,18 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { GripVertical } from 'lucide-react';
+import { VideoEditorPanel } from './video-editor-panel';
+import { VoiceAssistantPanel } from './voice-assistant-container';
 
 interface ResizablePanelsProps {
-  leftPanel: React.ReactNode;
-  rightPanel: React.ReactNode;
+  accessToken: string;
   initialLeftWidth?: number; // percentage (0-100)
   minLeftWidth?: number; // percentage
   minRightWidth?: number; // percentage
 }
 
 export function ResizablePanels({
-  leftPanel,
-  rightPanel,
+  accessToken,
   initialLeftWidth = 70,
   minLeftWidth = 30,
   minRightWidth = 20,
@@ -21,12 +21,6 @@ export function ResizablePanels({
   const [leftWidth, setLeftWidth] = useState(initialLeftWidth);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || !containerRef.current) return;
 
@@ -72,7 +66,7 @@ export function ResizablePanels({
         className="flex-shrink-0 min-w-0 rounded-2xl p-2"
         style={{ width: `${leftWidth}%` }}
       >
-        {leftPanel}
+        <VideoEditorPanel />
       </div>
 
       {/* Resizable Divider */}
@@ -80,7 +74,7 @@ export function ResizablePanels({
         className={`group relative flex-shrink-0 w-1 bg-gray-700 hover:bg-gray-600 cursor-col-resize transition-colors ${
           isDragging ? 'bg-blue-500' : 'dark:border-neutral-800'
         }`}
-        onMouseDown={handleMouseDown}
+        onMouseDown={() => setIsDragging(true)}
       >
         {/* Visual indicator */}
         <div className="absolute inset-y-0 left-1/2 transform -translate-x-1/2 w-3 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -96,7 +90,7 @@ export function ResizablePanels({
         className="flex-1 min-w-0 p-2"
         style={{ width: `${100 - leftWidth}%` }}
       >
-        {rightPanel}
+        <VoiceAssistantPanel accessToken={accessToken} />
       </div>
     </div>
   );

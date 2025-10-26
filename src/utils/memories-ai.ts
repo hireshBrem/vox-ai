@@ -64,7 +64,7 @@ interface StreamChunkData {
   [key: string]: any;
 }
 
-const BASE_URL = 'https://api.memories.ai/v1';
+const BASE_URL = 'https://api.memories.ai';
 
 async function getAuthHeaders(): Promise<HeadersInit> {
   const apiKey = process.env.MEMORIES_AI_API_KEY;
@@ -74,8 +74,8 @@ async function getAuthHeaders(): Promise<HeadersInit> {
   }
 
   return {
-    'Authorization': `Bearer ${apiKey}`,
-    'Content-Type': 'application/json',
+    "Authorization": `${apiKey}`,
+    // "Content-Type": "application/json",
   };
 }
 
@@ -106,23 +106,36 @@ export async function indexVideoFromURL(
   }
 ): Promise<IndexVideoFromURLResponse | null> {
   try {
-    const headers = await getAuthHeaders();
-
     const endpoint = options?.isPublic
       ? '/serve/api/v1/scraper_url_public'
       : '/serve/api/v1/scraper_url';
 
     const payload: IndexVideoFromURLRequest = {
       video_urls: videoUrls,
-      unique_id: options?.uniqueId || 'default',
-      callback_url: options?.callbackUrl,
+      unique_id: options?.uniqueId || '2132',
+      callback_url: options?.callbackUrl || 'https://b274aeb3353b.ngrok-free.app/api/memories/webhook',
       quality: options?.quality || 720,
     };
+    
+    const params = new URLSearchParams();
+    params.append('video_urls', JSON.stringify(payload.video_urls));
+    params.append('unique_id', payload.unique_id || 'default');
+    if (payload.callback_url) {
+      params.append('callback_url', payload.callback_url);
+    }
+    params.append('quality', payload.quality?.toString() || '720');
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      method: 'POST',
-      headers: headers as HeadersInit,
-      body: JSON.stringify(payload),
+    const fullURL = `${BASE_URL}${endpoint}?${params.toString()}`;
+
+    console.log('fullURL:', fullURL);
+    
+    const response = await fetch(fullURL, {
+      method: "POST",
+      headers: {
+        "Authorization": `${process.env.MEMORIES_AI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({video_urls: payload.video_urls}),
     });
 
     if (!response.ok) {
@@ -131,6 +144,7 @@ export async function indexVideoFromURL(
     }
 
     const data = await response.json() as IndexVideoFromURLResponse;
+    console.log('data:', data);
     return data;
   } catch (error) {
     console.error('Error indexing video from URL:', error);
@@ -164,6 +178,65 @@ export async function indexVideoFromURLToPublicLibrary(
     ...options,
     isPublic: true,
   });
+}
+
+interface GetVideoIdByTaskIdResponse {
+  code: string;
+  msg: string;
+  data: {
+    video_ids?: string[];
+    videos?: Array<{
+      duration: string;
+      size: number | null;
+      status: string;
+      fps: number | null;
+      width: number | null;
+      height: number | null;
+      video_no: string;
+      video_name: string;
+      create_time: string;
+      video_url: string;
+      resolution_label: string | null;
+    }>;
+  };
+  failed: boolean;
+  success: boolean;
+}
+
+export async function getVideoIdByTaskId(
+  taskId: string,
+  options?: {
+    uniqueId?: string;
+  }
+): Promise<GetVideoIdByTaskIdResponse | null> {
+  try {
+    const params = new URLSearchParams();
+    params.append('task_id', taskId);
+    params.append('unique_id', '1');
+
+    const fullURL = `${BASE_URL}/serve/api/v1/get_video_ids_by_task_id?${params.toString()}`;
+
+    console.log('getVideoIdByTaskId URL:', fullURL);
+
+    const response = await fetch(fullURL, {
+      method: 'GET',
+      headers: {
+        "Authorization": `${process.env.MEMORIES_AI_API_KEY}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to get video IDs by task ID: ${response.statusText}`);
+      return null;
+    }
+
+    const data = await response.json() as GetVideoIdByTaskIdResponse;
+    console.log('getVideoIdByTaskId response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error getting video IDs by task ID:', error);
+    return null;
+  }
 }
 
 export async function indexVideo(videoPath: string): Promise<MemoriesAIResponse> {
