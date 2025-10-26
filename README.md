@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+<h1 align="center">
+    <br>
+    <img src="./web-app/public/logo.png" alt="Browsor Agent Logo" width="100">
+    <br>
+    Vox AI
+    <br>
+</h1>
 
-First, run the development server:
+<h4 align="center">AI video editor powered by voice</h4>
+
+<p align="center">
+    <a href="#how-to-use">How To Use</a> •
+    <a href="#api-integrations">API Integrations</a> •
+    <a href="https://github.com/hireshBrem/resac-agent/blob/main/LICENSE">License</a>
+</p>
+
+<p align="center">
+  <img alt="Browsor Agent Demo" src="./web-app/public/demo.gif" width="50%"> </img>
+</p>
+
+## How To Use
+
+To clone and run this application, you'll need [Git](https://git-scm.com) and [Node.js](https://nodejs.org/en/download/) (which comes with [npm](http://npmjs.com)) installed on your computer. You'll also need API keys for the integrated services. From your command line:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Clone this repository
+$ git clone https://github.com/hireshb/junction-ai-hack
+
+# Go into the repository
+$ cd junction-ai-hack
+
+# Install dependencies
+$ npm install
+
+# Set up environment variables
+$ cp .env.example .env.local
+# Add your API keys to .env.local:
+# OPENAI_API_KEY=your_openai_api_key_here
+# TWELVELABS_API_KEY=your_twelvelabs_api_key_here
+# HYPERBROWSER_API_KEY=your_hyperbrowser_api_key_here
+
+# Run the development server
+$ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> **Note**
+> You'll need valid API keys for TwelveLabs, OpenAI, and Hyperbrowser to use the full functionality.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## API Integrations
 
-To learn more about Next.js, take a look at the following resources:
+This application integrates with several powerful AI and automation services:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 🎥 TwelveLabs
+- **Get Started**: Sign up at [TwelveLabs](https://twelvelabs.io/) for your API key
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 🧠 OpenAI
+- **Get Started**: Obtain your API key from [OpenAI Platform](https://platform.openai.com/)
 
-## Deploy on Vercel
+### 🌐 Hyperbrowser
+- **Get Started**: Sign up at [Hyperbrowser](https://www.hyperbrowser.ai/) for your API key
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Demo
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Upload a screen recording** of a workflow you want to automate (or use the [default one](https://github.com/hireshBrem/browsor-agent/blob/main/public/screen-recording/send_email_task.mov))
+2. **Add optional context** to guide the AI analysis (for customising the workflow)
+3. **Click "Run Agent"** to start the three-stage process:
+   - 📹 Video analysis (TwelveLabs)
+   - 📝 Step generation (OpenAI GPT-4o)
+   - 🤖 Browser automation (Hyperbrowser Agent)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+---
+
+> GitHub [@hireshb](https://github.com/hireshb) &nbsp;&middot;&nbsp;
+> Twitter [@hiresh_b](https://x.com/hiresh_b)
