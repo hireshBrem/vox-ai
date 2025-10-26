@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Scissors, Upload, Download, Loader, X, Search, CheckCircle } from 'lucide-react';
-import { uploadVideoFromUrl, getVideoIdByTaskId } from '@/actions';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Scissors, Upload, Download, Loader, X, Search, CheckCircle, Settings } from 'lucide-react';
+import { uploadVideoFromUrl, getVideoIdByTaskId, fetchChatSessions, getSessionDetailsAction, getTaskInfo } from '@/actions';
+import { motion } from 'framer-motion';
 
 export function VideoEditorPanel() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -23,6 +24,20 @@ export function VideoEditorPanel() {
   const [videoTitle, setVideoTitle] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Modal states
+  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'task' | 'sessions' | 'session-detail' | 'task-info'>('task');
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalResult, setModalResult] = useState<any>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
+
+  // Form inputs
+  const [taskIdForInfo, setTaskIdForInfo] = useState('');
+  const [uniqueIdForSessions, setUniqueIdForSessions] = useState('');
+  const [pageForSessions, setPageForSessions] = useState(1);
+  const [sessionIdInput, setSessionIdInput] = useState('');
+  const [uniqueIdForDetail, setUniqueIdForDetail] = useState('');
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -138,12 +153,54 @@ export function VideoEditorPanel() {
     }
   };
 
+  const handleModalAction = async () => {
+    setModalError(null);
+    setModalResult(null);
+    setModalLoading(true);
+
+    try {
+      let result: any;
+
+      if (activeTab === 'task') {
+        if (!taskIdForInfo.trim()) {
+          setModalError('Please enter a task ID');
+          setModalLoading(false);
+          return;
+        }
+        result = await getTaskInfo({ taskId: taskIdForInfo, uniqueId: '1' });
+      } else if (activeTab === 'sessions') {
+        if (!uniqueIdForSessions.trim()) {
+          setModalError('Please enter a unique ID');
+          setModalLoading(false);
+          return;
+        }
+        result = await fetchChatSessions({ uniqueId: uniqueIdForSessions, page: pageForSessions });
+      } else if (activeTab === 'session-detail') {
+        if (!sessionIdInput.trim() || !uniqueIdForDetail.trim()) {
+          setModalError('Please enter both session ID and unique ID');
+          setModalLoading(false);
+          return;
+        }
+        result = await getSessionDetailsAction({ sessionId: sessionIdInput, uniqueId: uniqueIdForDetail });
+      }
+
+      if (result.success) {
+        setModalResult(result);
+      } else {
+        setModalError(result.error || 'An error occurred');
+      }
+    } catch (error) {
+      setModalError(error instanceof Error ? error.message : 'An error occurred');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col bg-white text-gray-900 rounded-2xl h-full shadow-sm border border-gray-100">
       {/* Task Search Header */}
-      <div className="px-4 py-3 bg-white border-b border-gray-200 flex items-center gap-3">
-        <div className="flex items-center gap-2 flex-1">
-          <Search size={18} className="text-gray-500" />
+      <div className="px-4 py-3 bg-white border-b border-gray-200 flex items-center gap-3 rounded-t-2xl">
+        {/* <div className="flex items-center gap-2 flex-1">
           <input
             type="text"
             placeholder="Enter Task ID..."
@@ -171,11 +228,21 @@ export function VideoEditorPanel() {
             ) : (
               <>
                 <Search size={16} />
-                <span className="text-xs">Fetch</span>
               </>
             )}
           </button>
-        </div>
+        </div> */}
+        <button
+          onClick={() => {
+            setIsSessionModalOpen(true);
+            setModalResult(null);
+            setModalError(null);
+          }}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          title="Session Tools"
+        >
+          <Settings size={20} style={{ color: '#6E56CF' }} />
+        </button>
       </div>
 
       {/* Task Details Display */}
@@ -295,10 +362,10 @@ export function VideoEditorPanel() {
         </div>
       ) : (
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-full max-w-4xl aspect-video bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center">
+          <div className="w-full max-w-4xl aspect-video bg-white rounded-xl flex items-center justify-center">
             <div className="text-center space-y-6">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-50 to-purple-100 rounded-full flex items-center justify-center mx-auto">
-                <Upload size={28} className="text-purple-600" />
+                <Upload size={28} className="text-[#6E56CF]" />
               </div>
               <div>
                 <p className="text-lg font-semibold text-gray-900">No video loaded</p>
@@ -383,6 +450,165 @@ export function VideoEditorPanel() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Session Modal */}
+      {isSessionModalOpen && (
+        <motion.div 
+          className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <motion.div 
+            className="bg-white rounded-xl shadow-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            {/* Modal Header */}
+            <div className="sticky top-0 px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-white">
+              <h2 className="text-lg font-semibold text-gray-900">Session Tools</h2>
+              <button
+                onClick={() => setIsSessionModalOpen(false)}
+                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={20} className="text-gray-600" />
+              </button>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200 bg-gray-50">
+              {[
+                { id: 'task', label: 'Get Task Info' },
+                { id: 'sessions', label: 'Fetch Sessions' },
+                { id: 'session-detail', label: 'Session Details' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-[#6E56CF] text-[#6E56CF]'
+                      : 'border-transparent text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-4">
+              {/* Get Task Info Tab */}
+              {activeTab === 'task' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Task ID</label>
+                    <input
+                      type="text"
+                      value={taskIdForInfo}
+                      onChange={(e) => setTaskIdForInfo(e.target.value)}
+                      placeholder="Enter task ID..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none"
+                      style={{ borderColor: taskIdForInfo ? '#6E56CF' : undefined }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Fetch Sessions Tab */}
+              {activeTab === 'sessions' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Unique ID</label>
+                    <input
+                      type="text"
+                      value={uniqueIdForSessions}
+                      onChange={(e) => setUniqueIdForSessions(e.target.value)}
+                      placeholder="Enter unique ID..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none"
+                      style={{ borderColor: uniqueIdForSessions ? '#6E56CF' : undefined }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Page</label>
+                    <input
+                      type="number"
+                      value={pageForSessions}
+                      onChange={(e) => setPageForSessions(Number(e.target.value))}
+                      min="1"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Session Details Tab */}
+              {activeTab === 'session-detail' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Session ID</label>
+                    <input
+                      type="text"
+                      value={sessionIdInput}
+                      onChange={(e) => setSessionIdInput(e.target.value)}
+                      placeholder="Enter session ID..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none"
+                      style={{ borderColor: sessionIdInput ? '#6E56CF' : undefined }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Unique ID</label>
+                    <input
+                      type="text"
+                      value={uniqueIdForDetail}
+                      onChange={(e) => setUniqueIdForDetail(e.target.value)}
+                      placeholder="Enter unique ID..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none"
+                      style={{ borderColor: uniqueIdForDetail ? '#6E56CF' : undefined }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Error Display */}
+              {modalError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-700">{modalError}</p>
+                </div>
+              )}
+
+              {/* Result Display */}
+              {modalResult && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm font-medium text-green-900 mb-2">Result:</p>
+                  <pre className="text-xs text-green-700 overflow-auto max-h-64 bg-white p-2 rounded border border-green-100">
+                    {JSON.stringify(modalResult, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              {/* Action Button */}
+              <button
+                onClick={handleModalAction}
+                disabled={modalLoading}
+                className="w-full px-4 py-2 bg-[#6E56CF] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-70 flex items-center justify-center gap-2"
+              >
+                {modalLoading ? (
+                  <>
+                    <Loader size={16} className="animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  'Execute'
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
       )}
     </div>
   );

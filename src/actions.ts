@@ -1,6 +1,6 @@
 "use server";
 
-import { indexVideoFromURL, getVideoIdByTaskId as getVideoIdByTaskIdUtil } from "@/utils/memories-ai";
+import { indexVideoFromURL, getVideoIdByTaskId as getVideoIdByTaskIdUtil, listChatSessions, getSessionDetails } from "@/utils/memories-ai";
 
 interface UploadVideoFromUrlParams {
   videoUrls: string[];
@@ -165,3 +165,251 @@ export async function getVideoIdByTaskId(
     };
   }
 }
+
+interface ListChatSessionsParams {
+  uniqueId: string;
+  page?: number;
+}
+
+interface ChatSession {
+  session_id: string;
+  unique_id: string;
+  created_at: string;
+  updated_at: string;
+  [key: string]: any;
+}
+
+interface ListChatSessionsResult {
+  success: boolean;
+  sessions?: ChatSession[];
+  total?: number;
+  page?: number;
+  error?: string;
+}
+
+/**
+ * Server action to fetch chat sessions
+ * @param params - Parameters including unique ID and optional page number
+ * @returns Result with chat sessions or error message
+ */
+export async function fetchChatSessions(
+  params: ListChatSessionsParams
+): Promise<ListChatSessionsResult> {
+  try {
+    const { uniqueId, page } = params;
+
+    // Validate inputs
+    if (!uniqueId || typeof uniqueId !== "string") {
+      return {
+        success: false,
+        error: "Unique ID is required and must be a valid string",
+      };
+    }
+
+    if (page !== undefined && (typeof page !== "number" || page < 1)) {
+      return {
+        success: false,
+        error: "Page must be a positive number",
+      };
+    }
+
+    // Call the Memories AI API
+    const response = await listChatSessions(uniqueId, { page });
+    console.log('fetchChatSessions response:', response?.data);
+
+    if (!response) {
+      return {
+        success: false,
+        error: "Failed to fetch chat sessions",
+      };
+    }
+
+    if (!response.success) {
+      return {
+        success: false,
+        error: response.msg || "Unknown error occurred",
+      };
+    }
+
+    return {
+      success: true,
+      sessions: response.data?.sessions,
+      total: response.data?.total,
+      page: response.data?.page,
+    };
+  } catch (error) {
+    console.error("Error in fetchChatSessions:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
+  }
+}
+
+interface GetSessionDetailsParams {
+  sessionId: string;
+  uniqueId: string;
+}
+
+interface SessionDetails {
+  session_id: string;
+  unique_id: string;
+  created_at: string;
+  updated_at: string;
+  [key: string]: any;
+}
+
+interface GetSessionDetailsResult {
+  success: boolean;
+  session?: SessionDetails;
+  error?: string;
+}
+
+/**
+ * Server action to get details for a specific chat session
+ * @param params - Parameters including session ID
+ * @returns Result with session details or error message
+ */
+export async function getSessionDetailsAction(
+  params: GetSessionDetailsParams
+): Promise<GetSessionDetailsResult> {
+  try {
+    const { sessionId, uniqueId } = params;
+
+    // Validate inputs
+    if (!sessionId || typeof sessionId !== "string") {
+      return {
+        success: false,
+        error: "Session ID is required and must be a valid string",
+      };
+    }
+
+    if (!uniqueId || typeof uniqueId !== "string") {
+      return {
+        success: false,
+        error: "Unique ID is required and must be a valid string",
+      };
+    }
+
+    // Call the Memories AI API
+    const response = await getSessionDetails(sessionId, uniqueId);
+    console.log('getSessionDetails response:', response?.data);
+
+    if (!response) {
+      return {
+        success: false,
+        error: "Failed to retrieve session details",
+      };
+    }
+
+    if (!response.success) {
+      return {
+        success: false,
+        error: response.msg || "Unknown error occurred",
+      };
+    }
+
+    return {
+      success: true,
+      session: response.data?.sessions?.[0],
+    };
+  } catch (error) {
+    console.error("Error in getSessionDetailsAction:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
+  }
+}
+
+interface GetTaskInfoParams {
+  taskId: string;
+  uniqueId?: string;
+}
+
+interface TaskInfo {
+  video_ids?: string[];
+  videos?: Array<{
+    duration: string;
+    size: number | null;
+    status: string;
+    fps: number | null;
+    width: number | null;
+    height: number | null;
+    video_no: string;
+    video_name: string;
+    create_time: string;
+    video_url: string;
+    resolution_label: string | null;
+  }>;
+}
+
+interface GetTaskInfoResult {
+  success: boolean;
+  taskInfo?: TaskInfo;
+  error?: string;
+}
+
+/**
+ * Server action to get task information
+ * @param params - Parameters including task ID and optional unique ID
+ * @returns Result with task information or error message
+ */
+export async function getTaskInfo(
+  params: GetTaskInfoParams
+): Promise<GetTaskInfoResult> {
+  try {
+    const { taskId, uniqueId = "1" } = params;
+
+    // Validate inputs
+    if (!taskId || typeof taskId !== "string") {
+      return {
+        success: false,
+        error: "Task ID is required and must be a valid string",
+      };
+    }
+
+    if (uniqueId && typeof uniqueId !== "string") {
+      return {
+        success: false,
+        error: "Unique ID must be a valid string",
+      };
+    }
+
+    // Call the Memories AI API via utility function
+    const response = await getVideoIdByTaskIdUtil(taskId);
+    console.log("getTaskInfo response:", response?.data);
+
+    if (!response) {
+      return {
+        success: false,
+        error: "Failed to retrieve task information",
+      };
+    }
+
+    if (!response.success) {
+      return {
+        success: false,
+        error: response.msg || "Unknown error occurred",
+      };
+    }
+
+    return {
+      success: true,
+      taskInfo: {
+        video_ids: response.data?.video_ids,
+        videos: response.data?.videos,
+      },
+    };
+  } catch (error) {
+    console.error("Error in getTaskInfo:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
+  }
+}
+

@@ -582,3 +582,92 @@ export async function clearChatSession(sessionId: string): Promise<boolean> {
     return false;
   }
 }
+
+interface ListSessionsResponse {
+  code: string;
+  msg: string;
+  data: {
+    sessions?: Array<{
+      session_id: string;
+      unique_id: string;
+      created_at: string;
+      updated_at: string;
+      [key: string]: any;
+    }>;
+    total?: number;
+    page?: number;
+  };
+  failed: boolean;
+  success: boolean;
+}
+
+export async function listChatSessions(
+  uniqueId: string,
+  options?: {
+    page?: number;
+  }
+): Promise<ListSessionsResponse | null> {
+  try {
+    const page = options?.page || 1;
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('unique_id', uniqueId);
+
+    const fullURL = `${BASE_URL}/serve/api/v1/list_sessions?${params.toString()}`;
+
+    console.log('listChatSessions URL:', fullURL);
+
+    const response = await fetch(fullURL, {
+      method: 'GET',
+      headers: {
+        "Authorization": `${process.env.MEMORIES_AI_API_KEY}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to list chat sessions: ${response.statusText}`);
+      return null;
+    }
+
+    const data = await response.json() as ListSessionsResponse;
+    console.log('listChatSessions response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error listing chat sessions:', error);
+    return null;
+  }
+}
+
+export async function getSessionDetails(
+  sessionId: string,
+  uniqueId: string
+): Promise<ListSessionsResponse | null> {
+  try {
+    const params = new URLSearchParams();
+    params.append('session_id', sessionId);
+    params.append('unique_id', uniqueId);
+
+    const fullURL = `${BASE_URL}/serve/api/v1/get_session_detail?${params.toString()}`;
+
+    console.log('getSessionDetails URL:', fullURL);
+
+    const response = await fetch(fullURL, {
+      method: 'GET',
+      headers: {
+        "Authorization": `${process.env.MEMORIES_AI_API_KEY}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to get session details: ${response.statusText}`);
+      return null;
+    }
+
+    const data = await response.json() as ListSessionsResponse;
+    console.log('getSessionDetails response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error getting session details:', error);
+    return null;
+  }
+}

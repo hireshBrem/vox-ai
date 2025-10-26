@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, Scissors, Sparkles } from 'lucide-react';
 import { VideoEditorPanel } from './video-editor-panel';
 import { VoiceAssistantPanel } from './voice-assistant-container';
+import { GeneratePanel } from './generate-panel';
 
 interface ResizablePanelsProps {
   accessToken: string;
@@ -20,6 +21,7 @@ export function ResizablePanels({
 }: ResizablePanelsProps) {
   const [leftWidth, setLeftWidth] = useState(initialLeftWidth);
   const [isDragging, setIsDragging] = useState(false);
+  const [agentMode, setAgentMode] = useState<'edit_videos' | 'generate_content'>('edit_videos');
   const containerRef = useRef<HTMLDivElement>(null);
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || !containerRef.current) return;
@@ -63,10 +65,45 @@ export function ResizablePanels({
     >
       {/* Left Panel */}
       <div 
-        className="flex-shrink-0 min-w-0 rounded-2xl p-2"
+        className="flex-shrink-0 min-w-0"
         style={{ width: `${leftWidth}%` }}
       >
-        <VideoEditorPanel />
+        {/* Toggle */}
+        <div className="pt-2 pb-1 flex justify-center">
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setAgentMode('edit_videos')}
+              className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                agentMode === 'edit_videos'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Scissors size={14} />
+              <span>Edit Videos</span>
+            </button>
+            <button
+              onClick={() => setAgentMode('generate_content')}
+              className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                agentMode === 'generate_content'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Sparkles size={14} />
+              <span>Generate</span>
+            </button>
+          </div>
+        </div>
+        
+        {/* Panel Content */}
+        <div className="h-[calc(100%-60px)] px-2">
+          {agentMode === 'edit_videos' ? (
+            <VideoEditorPanel />
+          ) : (
+            <GeneratePanel />
+          )}
+        </div>
       </div>
 
       {/* Resizable Divider */}
