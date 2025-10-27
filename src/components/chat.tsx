@@ -9,13 +9,15 @@ import { Button } from "./ui/button";
 import { AnimatePresence } from "framer-motion";
 import { motion } from "framer-motion";
 import { Loader2Icon, PhoneIcon, PhoneOffIcon, XIcon } from "lucide-react";
+import { handleToolCall } from "@/utils/hume-tool-handler";
 
 interface ChatProps {
   accessToken: string;
+  agentMode: 'edit_videos' | 'generate_content';
 }
 
-function ChatContent({ accessToken }: ChatProps) {
-  const { connect, disconnect, readyState } = useVoice();
+function ChatContent({ accessToken, agentMode }: ChatProps) {
+  const { connect, disconnect, readyState, messages } = useVoice();
   const [agentState, setAgentState] = useState<"thinking" | "listening" | "talking" | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
@@ -25,7 +27,7 @@ function ChatContent({ accessToken }: ChatProps) {
 
   // Update agentState based on connection status
   useEffect(() => {
-    // console.log("isConnecting", isConnecting);
+    console.log("messages", messages);
     console.log("agentState", agentState);
     if (isDisconnecting) {
       setAgentState(null);
@@ -36,15 +38,22 @@ function ChatContent({ accessToken }: ChatProps) {
     } else {
       setAgentState(null);
     }
-  }, [isConnecting, isConnected, isDisconnecting]);
+  }, [isConnecting, isConnected, isDisconnecting])
+
+  
 
   const handleConnect = async () => {
     setIsConnecting(true);
     setError(null);
 
     try {
+      const configId = agentMode === 'edit_videos' 
+        ? '1945e668-7e5c-49ee-9cba-262db73ef625' 
+        : 'eda435d3-0a9f-4b87-9ab5-b6c44e76453e';
+      
       await connect({
         auth: { type: "accessToken", value: accessToken },
+        configId,
       });
     } catch (err) {
       setError(
@@ -142,7 +151,29 @@ function ChatContent({ accessToken }: ChatProps) {
   );
 }
 
-export default function Chat({ accessToken }: ChatProps) {
+export default function Chat({ accessToken, agentMode }: ChatProps) {
+  // Handle tool calls
+  const handleToolCallMessage = async (
+    message: any,
+    send: any
+  ) => {
+    console.log('Received tool call:', message);
+
+    try {
+      const result = await handleToolCall(message, send);
+      console.log('Tool call result:', result);
+      return result;
+    } catch (err) {
+      console.error('Error handling tool call:', err);
+      return send.error({
+        error: 'Tool execution failed',
+        code: 'TOOL_ERROR',
+        level: 'error',
+        content: err instanceof Error ? err.message : 'Unknown error occurred',
+      });
+    }
+  };
+
   if (!accessToken) {
     return (
       <div className="flex items-center justify-center h-full text-neutral-600 bg-neutral-100">
@@ -157,8 +188,8 @@ export default function Chat({ accessToken }: ChatProps) {
   }
 
   return (
-    <VoiceProvider>
-      <ChatContent accessToken={accessToken} />
+    <VoiceProvider onToolCall={handleToolCallMessage}>  
+      <ChatContent accessToken={accessToken} agentMode={agentMode} />
     </VoiceProvider>
   );
 }

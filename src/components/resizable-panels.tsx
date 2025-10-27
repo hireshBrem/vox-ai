@@ -127,7 +127,7 @@ export function ResizablePanels({
         className="flex-1 min-w-0 p-2"
         style={{ width: `${100 - leftWidth}%` }}
       >
-        <VoiceAssistantPanel accessToken={accessToken} />
+        <VoiceAssistantPanel accessToken={accessToken} agentMode={agentMode} />
       </div>
     </div>
   );

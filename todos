@@ -1,0 +1,5 @@
+- create tools for voice agent
+- add tools for generate images/videos for runware.ai
+- for editing videos, it should index video first using memories.ai, load/wait then 
+use voice agent to apply edits to the videos (tools)
+- create video editing tools as functions using shotstack mcp.
