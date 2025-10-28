@@ -1,6 +1,6 @@
 "use client";
 
-import Chat from "./chat";
+import Chat from "@/components/chat";
 
 interface ChatWrapperProps {
   accessToken: string;

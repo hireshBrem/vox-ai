@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 config({ path: '.env.local' });
 config({ path: '.env' });
 
-import { handleTrimVideo } from '../utils/creatomate';
+import { handleTrimVideo } from '@/utils/creatomate';
 
 /**
  * Single test: handleTrimVideo with video_url, start, and end

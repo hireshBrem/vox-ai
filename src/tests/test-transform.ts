@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 config({ path: '.env.local' });
 config({ path: '.env' });
 
-import { transformImage, transformVideo } from '../utils/runware-ai';
+import { transformImage, transformVideo } from '@/utils/runware-ai';
 import fs from 'fs';
 import path from 'path';
 

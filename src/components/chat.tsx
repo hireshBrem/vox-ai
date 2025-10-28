@@ -3,7 +3,7 @@
 import { VoiceProvider, useVoice, VoiceReadyState } from "@humeai/voice-react";
 import { Orb } from "@/components/ui/orb"
 import { useState, useEffect } from "react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { AnimatePresence } from "framer-motion";
 import { motion } from "framer-motion";
 import { Loader2Icon, PhoneIcon, XIcon } from "lucide-react";

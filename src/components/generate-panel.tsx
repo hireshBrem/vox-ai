@@ -3,7 +3,7 @@
 import { Sparkles, Image as ImageIcon, Video as VideoIcon, Download, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
 
 export function GeneratePanel() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);

@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 config({ path: '.env.local' });
 config({ path: '.env' });
 
-import { getRunwareInstance } from '../utils/runware-ai';
+import { getRunwareInstance } from '@/utils/runware-ai';
 
 async function testGetRunwareInstance() {
   console.log('Testing getRunwareInstance...\n');

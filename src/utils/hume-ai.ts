@@ -1,6 +1,6 @@
 import { fetchAccessToken } from "hume";
-import { generateImage, generateVideo } from './runware-ai';
-import { handleTrimVideo } from './creatomate';
+import { generateImage, generateVideo } from '@/utils/runware-ai';
+import { handleTrimVideo } from '@/utils/creatomate';
 import { queryVideo } from '@/actions';
 
 export async function getHumeAccessToken(): Promise<string> {

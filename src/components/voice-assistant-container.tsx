@@ -1,6 +1,6 @@
 "use client";
 
-import ChatWrapper from "./voice-assistant-panel";
+import ChatWrapper from "@/components/voice-assistant-panel";
 
 interface VoiceAssistantPanelProps {
   accessToken: string;

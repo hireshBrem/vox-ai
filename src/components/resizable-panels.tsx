@@ -2,9 +2,9 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { GripVertical, Scissors, Sparkles } from 'lucide-react';
-import { VideoEditorPanel } from './video-editor-panel';
-import { VoiceAssistantPanel } from './voice-assistant-container';
-import { GeneratePanel } from './generate-panel';
+import { VideoEditorPanel } from '@/components/video-editor-panel';
+import { VoiceAssistantPanel } from '@/components/voice-assistant-container';
+import { GeneratePanel } from '@/components/generate-panel';
 
 interface ResizablePanelsProps {
   accessToken: string;
