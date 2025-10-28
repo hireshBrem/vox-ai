@@ -73,7 +73,7 @@ export function ResizablePanels({
         {/* Panel Content */}
         <div className="h-full px-2 flex flex-col w-full">
           {/* Toggle */}
-          <div className="py-2 flex justify-center flex-shrink-0 bg-white m-2 rounded-2xl">
+          <div className="py-2 flex justify-center flex-shrink-0 bg-white mt-2 rounded-t-2xl">
             <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setAgentMode('edit_videos')}

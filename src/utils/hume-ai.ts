@@ -106,6 +106,13 @@ async function handleGenerateImage(
       });
     }
 
+    // Dispatch event to signal that image generation has started
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('generationStarted', { 
+        detail: { type: 'image', prompt: params.prompt } 
+      }));
+    }
+
     // Call the generate image function
     const result = await generateImage({
       prompt: params.prompt,
@@ -168,6 +175,13 @@ async function handleGenerateVideo(
         level: 'warn',
         content: 'The "duration" parameter is required for video generation',
       });
+    }
+
+    // Dispatch event to signal that video generation has started
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('generationStarted', { 
+        detail: { type: 'video', prompt: params.prompt } 
+      }));
     }
 
     // Call the generate video function

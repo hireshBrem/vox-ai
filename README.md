@@ -4,7 +4,7 @@
     <br>
 </h1>
 
-<h4 align="center">AI-Powered Video Editor Controlled by Voice</h4>
+<h4 align="center">AI video editor using voice</h4>
 
 <p align="center">
     <a href="#project-overview">Overview</a> •
@@ -21,7 +21,7 @@
 
 ## 🎯 Project Overview
 
-**Vox AI** is an intelligent voice-controlled video editing platform that makes professional video editing accessible to everyone. By combining empathic voice interaction, contextual memory, and AI-powered generation, we're transforming hours of tedious editing into minutes of natural conversation.
+**Vox AI** is an AI video editor controlled using voice that makes professional video editing accessible to everyone. By combining empathic voice interaction, contextual memory, and AI-powered generation, we're transforming hours of tedious editing into minutes of natural conversation.
 
 ### The Problem
 Video editing is time-consuming, technically demanding, and requires expensive software expertise. Content creators spend hours on tasks that should take minutes, creating a significant barrier to quality content production.

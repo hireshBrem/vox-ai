@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, Scissors, Upload, Download, Loader, X, Search, CheckCircle, Settings } from 'lucide-react';
 import { getVideoIdByTaskId, fetchChatSessions, getSessionDetailsAction, getTaskInfo } from '@/actions';
 import { motion } from 'framer-motion';
+import { uploadVideo } from '@/utils/filestack';
 
 export interface VideoEditorPanelRef {
   sessionId: string | null;
@@ -25,6 +26,8 @@ export function VideoEditorPanel() {
   const [videoTitle, setVideoTitle] = useState<string>('');
   const [videoNumber, setVideoNumber] = useState<string>('');
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [uploadedPublicUrl, setUploadedPublicUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -87,6 +90,7 @@ export function VideoEditorPanel() {
     setDuration(0);
     setIsPlaying(false);
     setVideoTitle('');
+    setUploadedPublicUrl(null);
   };
 
   const handleFetchTaskDetails = async () => {
@@ -174,7 +178,7 @@ export function VideoEditorPanel() {
   };
 
   return (
-    <div className="flex flex-col bg-white text-gray-900 rounded-2xl h-full shadow-sm border border-gray-100">
+    <div className="flex flex-col bg-white text-gray-900 rounded-b-2xl h-full shadow-sm border border-gray-100">
       {/* Task Search Header */}
       <div className="px-4 py-3 bg-white border-b border-gray-200 flex items-center gap-3 rounded-t-2xl">
         <div className="flex items-center gap-2 flex-1">
@@ -262,6 +266,35 @@ export function VideoEditorPanel() {
               className="px-2 py-1 text-xs bg-white border border-blue-300 rounded text-blue-700 hover:bg-blue-100 transition-colors"
             >
               Copy
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Uploaded Public URL Display */}
+      {uploadedPublicUrl && (
+        <div className="px-4 py-3 bg-purple-50 border-b border-purple-200">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 space-y-1">
+              <p className="text-xs font-medium text-purple-900">Uploaded Video URL</p>
+              <div className="text-xs text-purple-700 break-all">
+                <a 
+                  href={uploadedPublicUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:underline font-mono"
+                >
+                  {uploadedPublicUrl}
+                </a>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(uploadedPublicUrl);
+              }}
+              className="px-2 py-1 text-xs bg-white border border-purple-300 rounded text-purple-700 hover:bg-purple-100 transition-colors"
+            >
+              Copy URL
             </button>
           </div>
         </div>
@@ -381,23 +414,39 @@ export function VideoEditorPanel() {
                 accept="video/*" 
                 ref={fileInputRef} 
                 style={{ display: 'none' }}
-                onChange={(event) => {
+                onChange={async (event) => {
                   if (event.target.files && event.target.files.length > 0) {
                     const file = event.target.files[0];
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      setVideoUrl(reader.result as string);
+                    setIsUploadingFile(true);
+                    setUploadedPublicUrl(null);
+                    try {
+                      const publicUrl = await uploadVideo(file);
+                      setVideoUrl(publicUrl);
+                      setUploadedPublicUrl(publicUrl);
                       setIsVideoLoaded(true);
-                    };
-                    reader.readAsDataURL(file);
+                      setVideoTitle(file.name);
+                    } catch (error) {
+                      console.error('Upload failed:', error);
+                      alert('Failed to upload video. Please try again.');
+                    } finally {
+                      setIsUploadingFile(false);
+                    }
                   }
                 }}
               />
               <button 
                 onClick={() => fileInputRef.current?.click()}
-                className="px-6 py-2.5 hover:bg-gray-100 rounded-lg text-sm text-gray-900 transition-colors border border-gray-300 font-medium bg-white"
+                disabled={isUploadingFile}
+                className="px-6 py-2.5 hover:bg-gray-100 rounded-lg text-sm text-gray-900 transition-colors border border-gray-300 font-medium bg-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Upload File
+                {isUploadingFile ? (
+                  <>
+                    <Loader size={16} className="animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  'Upload File'
+                )}
               </button>
             </div>
           </div>
