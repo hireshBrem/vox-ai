@@ -1,0 +1,70 @@
+{
+  "tools": [
+    {
+      "name": "generate_image",
+      "description": "Generates an image based on a text prompt with specified dimensions",
+      "version_description": "Image generation tool with custom dimensions",
+      "parameters": {
+        "type": "object",
+        "required": ["prompt", "width", "height"],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "The prompt of the image to generate."
+          },
+          "width": {
+            "type": "integer",
+            "description": "The width of the image in pixels."
+          },
+          "height": {
+            "type": "integer",
+            "description": "The height of the image in pixels."
+          }
+        }
+      }
+    },
+    {
+      "name": "generate_video",
+      "description": "Generates a video based on a text prompt with specified duration",
+      "version_description": "Video generation tool with custom duration",
+      "parameters": {
+        "type": "object",
+        "required": ["prompt", "duration"],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "The prompt of the video to generate."
+          },
+          "duration": {
+            "type": "integer",
+            "description": "The duration of the video in seconds."
+          }
+        }
+      }
+    },
+    {
+      "name": "trim_video",
+      "description": "Trim a video between start and end seconds using Creatomate",
+      "version_description": "Video trim tool with optional start/end",
+      "parameters": {
+        "type": "object",
+        "required": ["video_url"],
+        "properties": {
+          "video_url": {
+            "type": "string",
+            "description": "The url of the video to be edited."
+          },
+          "start": {
+            "type": "integer",
+            "description": "The start time for trim in seconds"
+          },
+          "end": {
+            "type": "integer",
+            "description": "The end time for trim in seconds"
+          }
+        }
+      }
+    }
+  ]
+}
+
