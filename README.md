@@ -21,7 +21,7 @@
 
 ## 🎯 Project Overview
 
-**Vox AI** is an AI video editor controlled using voice that makes professional video editing accessible to everyone. By combining empathic voice interaction, contextual memory, and AI-powered generation, we're transforming hours of tedious editing into minutes of natural conversation.
+**Vox AI** is an AI video editor controlled using voice that makes professional video editing accessible to everyone. Vox AI is trying to transform hours of tedious editing into minutes of natural conversation.
 
 ### The Problem
 Video editing is time-consuming, technically demanding, and requires expensive software expertise. Content creators spend hours on tasks that should take minutes, creating a significant barrier to quality content production.
@@ -36,7 +36,7 @@ The global video editing software market is estimated between **$2.43B - $3.54B 
 
 ## 👥 Team Introduction
 
-- **Team Name:** [TEAM NAME]
+- **Team Name:** Vox AI
 - **Members:**
   - **Hiresh Bremanand** - Full-Stack Developer - United Kingdom
 - **Fun Fact:** Built my first AI project at 17 and reached 1000 users! 🚀
@@ -59,44 +59,61 @@ The global video editing software market is estimated between **$2.43B - $3.54B 
 ### 3. 🎨 AI Content Generation
 - **Image Generation** via Runware AI with custom dimensions
 - **Video Generation** via Runware AI with duration control
-- Live preview updates as content is generated
-- Tool-based architecture for extensible generation capabilities
 
-### 4. 📹 Interactive Video Editor
-- Real-time video playback and preview
+### 4. 📹 Voice-based Video Editor
 - Timeline-based editing interface
 - Generated content integration
 - Responsive panel-based layout
-
-### 5. 🎯 Agentic Behavior
-- Goal decomposition for complex editing tasks
-- Autonomous tool selection and execution
-- Self-correction mechanisms for failed operations
-- Comprehensive error handling and recovery
 
 ---
 
 ## 🛠 Tech Stack
 
-### Frontend
-- **Next.js 15.5** - React framework with App Router
-- **React 19** - UI library
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first styling
-- **Shadcn UI & Radix UI** - Component library
-- **Framer Motion** - Smooth animations
-- **Three.js & React Three Fiber** - 3D visualizations
+### Frontend Framework
+- **Next.js 15.5.6** - React framework with App Router and Turbopack
+- **React 19.1.0** - UI library with latest features
+- **TypeScript 5** - Type-safe development
+- **Tailwind CSS 4** - Utility-first styling
 
-### Backend & APIs
-- **Hume AI** - Empathic Voice Interface (EVI)
-- **Memories.ai** - Video indexing and memory management
-- **Runware AI** - Image and video generation
-- **Node.js** - Server runtime
+### UI Components & Styling
+- **Shadcn UI** - Beautiful, accessible component system
+- **Radix UI** - Unstyled, accessible UI primitives
+- **Lucide React** - Modern icon library (548+ icons)
+- **Framer Motion 12** - Production-ready animations
+- **class-variance-authority** - Type-safe variant styling
+- **tailwind-merge** - Merge Tailwind classes intelligently
 
-### State Management & Architecture
+### 3D Graphics & Visualization
+- **Three.js 0.180** - WebGL 3D graphics library
+- **React Three Fiber 9.4** - React renderer for Three.js
+- **@react-three/drei** - Useful helpers for R3F
+
+### AI & Voice APIs
+- **Hume AI SDK** - Empathic Voice Interface (EVI)
+  - `hume` (0.14.1) - Core SDK
+  - `@humeai/voice-react` (0.2.6) - React integration
+- **Memories.ai** - Video indexing and semantic memory
+- **Runware AI SDK** (1.1.48) - Image and video generation
+- **ElevenLabs React** (0.8.1) - Advanced text-to-speech
+
+### File Management & Media
+- **Filestack** (3.44.2) - File upload and transformation
+- **Uploadcare** (6.18.0) - File uploading service
+- **ImageKit** (4.3.0) - Image optimization and delivery
+- **Next.js Image Optimization** - Built-in image handling
+
+### Development Tools
+- **tsx** - TypeScript execution engine for testing
+- **ts-node** - TypeScript Node.js runtime
+- **dotenv** - Environment variable management
+- **Node.js 20+** - JavaScript runtime
+
+### Architecture & Patterns
 - **Server Components** - Optimized React Server Components
+- **Server Actions** - Type-safe server mutations
 - **Custom Hooks** - Reusable React logic
 - **Tool-Based Architecture** - Extensible AI tool system
+- **Event-Driven Updates** - Real-time UI synchronization
 
 ---
 
@@ -107,37 +124,15 @@ The global video editing software market is estimated between **$2.43B - $3.54B 
 **Integration:** Core voice interaction layer
 
 **How It Works:**
-- Implemented custom tool use system with `generate_image` and `generate_video` tools
-- Real-time voice-to-text and text-to-voice streaming
+- Implemented custom tool use system with `generate_image` and `generate_video` and more tools
+- Real-time streaming
 - Emotional awareness in responses
 - Tool call handling with proper success/error responses
 
-**Code Location:**
-- `src/utils/hume-ai.ts` - Tool handler and access token management
-- `src/components/chat.tsx` - Voice provider integration
-- `src/components/voice-assistant-panel.tsx` - UI components
-
-**Why We Chose It:**
+**Why Chose It:**
 Hume AI's EVI provides unmatched emotional intelligence in voice interactions. The empathic responses create a natural, human-like experience that's crucial for creative work like video editing. The tool use capability allows seamless integration with our generation pipeline.
 
-**Technical Highlights:**
-```typescript
-// Tool call handling with Hume AI
-export async function handleToolCall(
-  toolCallMessage: any,
-  send: HumeSendHelpers
-): Promise<any> {
-  const { name, parameters } = toolCallMessage;
-  const parsedParams = JSON.parse(parameters);
-  
-  if (name === 'generate_image') {
-    return await handleGenerateImage(parsedParams, send);
-  } else if (name === 'generate_video') {
-    return await handleGenerateVideo(parsedParams, send);
-  }
-  // Error handling with proper response format
-}
-```
+
 
 **Documentation:** `HUME_TOOL_CONFIGURATION.md`
 
@@ -153,35 +148,8 @@ export async function handleToolCall(
 - Retrieve relevant video segments based on natural language queries
 - Store and recall editing context across sessions
 
-**Code Location:**
-- `src/utils/memories-ai.ts` - Complete Memories.ai SDK integration
-
-**Key Functions:**
-- `indexVideoFromURL()` - Index videos for semantic search
-- `chatPersonal()` - Context-aware conversations with memory
-- `chatPersonalStream()` - Streaming responses with video references
-- `getVideoIdByTaskId()` - Track indexing status
-- `listChatSessions()` - Session management
-
-**Why We Chose It:**
-Memories.ai enables true contextual awareness. The system remembers which videos users have worked on, what edits they've made, and can intelligently retrieve relevant content when needed. This transforms a one-shot tool into a learning assistant.
-
-**Technical Highlights:**
-```typescript
-// Streaming chat with video context
-await chatPersonalStream(
-  prompt,
-  (chunk) => appendToResponse(chunk),
-  sessionId,
-  uniqueId
-);
-
-// Video indexing with callbacks
-const result = await indexVideoFromURL(
-  ['https://video-url.mp4'],
-  { uniqueId: 'user123', quality: 720 }
-);
-```
+**Why Chose It:**
+Memories.ai enables true contextual awareness by enabling to understand context of videos by chatting with it.
 
 ---
 
@@ -195,10 +163,6 @@ const result = await indexVideoFromURL(
 - Real-time generation with live preview updates
 - localStorage + event-driven updates for UI synchronization
 
-**Code Location:**
-- `src/utils/runware-ai.ts` - Generation functions
-- Integration with Hume AI tool calls
-
 **Key Capabilities:**
 - Image generation with multiple models (runware:101@1)
 - Video generation with KlingAI models (klingai:5@3)
@@ -207,27 +171,6 @@ const result = await indexVideoFromURL(
 
 **Why We Chose It:**
 Runware AI provides fast, high-quality generation through a simple SDK. The ability to generate both images and videos through a single API simplifies our architecture and ensures consistent quality across media types.
-
-**Technical Highlights:**
-```typescript
-// Image generation
-const images = await runware.requestImages({
-  positivePrompt: prompt,
-  model: 'runware:101@1',
-  width,
-  height,
-});
-
-// Video generation
-const videos = await runware.videoInference({
-  positivePrompt: prompt,
-  model: 'klingai:5@3',
-  duration,
-  width: 1920,
-  height: 1080,
-});
-```
-
 ---
 
 ## 🏗 Architecture
@@ -883,37 +826,6 @@ npm start
 
 ---
 
-## 🧪 Evaluation & Testing
-
-### Performance Testing
-
-**Load Testing:**
-- [TODO: Add concurrent user testing results]
-- [TODO: Add API rate limit testing]
-
-**Benchmark Results:**
-- [TODO: Add response time benchmarks]
-- [TODO: Add generation quality metrics]
-
-### Ablation Studies
-
-**Without Memory (Memories.ai):**
-- [TODO: Add performance comparison]
-- Context loss between sessions
-- Reduced personalization
-
-**Without Empathic Voice (Hume AI):**
-- [TODO: Add user experience comparison]
-- Less engaging interaction
-- Higher abandonment rate
-
-**Without AI Generation (Runware):**
-- [TODO: Add workflow comparison]
-- Manual asset sourcing required
-- Longer editing time
-
----
-
 ## 💡 Challenges & Learnings
 
 ### Technical Challenges
@@ -1044,7 +956,6 @@ This project is licensed under the terms specified in the [LICENSE](LICENSE) fil
 
 - **GitHub:** [@hireshb](https://github.com/hireshb)
 - **Twitter:** [@hiresh_b](https://x.com/hiresh_b)
-- **Project Repository:** [memories-ai-hackathon](https://github.com/hireshb/memories-ai-hackathon)
 
 ---
 
