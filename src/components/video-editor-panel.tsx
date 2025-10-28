@@ -2,8 +2,13 @@
 
 import { useState, useRef } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, Scissors, Upload, Download, Loader, X, Search, CheckCircle, Settings } from 'lucide-react';
-import { uploadVideoFromUrl, getVideoIdByTaskId, fetchChatSessions, getSessionDetailsAction, getTaskInfo } from '@/actions';
+import { getVideoIdByTaskId, fetchChatSessions, getSessionDetailsAction, getTaskInfo } from '@/actions';
 import { motion } from 'framer-motion';
+
+export interface VideoEditorPanelRef {
+  sessionId: string | null;
+  videoNumber: string;
+}
 
 export function VideoEditorPanel() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -12,16 +17,14 @@ export function VideoEditorPanel() {
   const [volume, setVolume] = useState(50);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string>('');
-  const [urlInput, setUrlInput] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
   const [taskId, setTaskId] = useState<string | null>(null);
   const [taskIdInput, setTaskIdInput] = useState('');
   const [isFetchingTask, setIsFetchingTask] = useState(false);
   const [taskVideos, setTaskVideos] = useState<any[]>([]);
   const [taskError, setTaskError] = useState<string | null>(null);
   const [videoTitle, setVideoTitle] = useState<string>('');
+  const [videoNumber, setVideoNumber] = useState<string>('');
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -76,37 +79,6 @@ export function VideoEditorPanel() {
     }
   }
 
-  const handleUrlSubmit = async () => {
-    setUploadError(null);
-    setUploadSuccess(null);
-
-    if (!urlInput.trim()) {
-      setUploadError('Please enter a valid URL');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const result = await uploadVideoFromUrl({
-        videoUrls: [urlInput],
-      });
-
-      if (result.success) {
-        setUploadSuccess(`Video uploaded successfully! Task ID: ${result.taskId}`);
-        setTaskId(result.taskId || null);
-        setVideoUrl(urlInput);
-        setIsVideoLoaded(true);
-        setUrlInput('');
-      } else {
-        setUploadError(result.error || 'Failed to upload video');
-      }
-    } catch (error) {
-      setUploadError(error instanceof Error ? error.message : 'An error occurred');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleClearVideo = () => {
     setIsVideoLoaded(false);
     setVideoUrl('');
@@ -114,7 +86,6 @@ export function VideoEditorPanel() {
     setCurrentTime(0);
     setDuration(0);
     setIsPlaying(false);
-    setUploadSuccess(null);
     setVideoTitle('');
   };
 
@@ -142,6 +113,12 @@ export function VideoEditorPanel() {
         const firstVideo = result.videos[0];
         setVideoUrl(firstVideo.video_url);
         setVideoTitle(firstVideo.video_name);
+        setVideoNumber(firstVideo.video_no);
+        
+        // Generate sessionId (task ID + timestamp)
+        const generatedSessionId = `${taskIdInput}_${Date.now()}`;
+        setSessionId(generatedSessionId);
+        
         setIsVideoLoaded(true);
       } else {
         setTaskError(result.error || 'Failed to fetch task details or no videos found');
@@ -200,7 +177,7 @@ export function VideoEditorPanel() {
     <div className="flex flex-col bg-white text-gray-900 rounded-2xl h-full shadow-sm border border-gray-100">
       {/* Task Search Header */}
       <div className="px-4 py-3 bg-white border-b border-gray-200 flex items-center gap-3 rounded-t-2xl">
-        {/* <div className="flex items-center gap-2 flex-1">
+        <div className="flex items-center gap-2 flex-1">
           <input
             type="text"
             placeholder="Enter Task ID..."
@@ -231,7 +208,7 @@ export function VideoEditorPanel() {
               </>
             )}
           </button>
-        </div> */}
+        </div>
         <button
           onClick={() => {
             setIsSessionModalOpen(true);
@@ -263,6 +240,33 @@ export function VideoEditorPanel() {
         </div>
       )}
 
+      {/* Session Log Display */}
+      {sessionId && videoNumber && (
+        <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 space-y-1">
+              <p className="text-xs font-medium text-blue-900">Session Log</p>
+              <div className="flex gap-4">
+                <div className="text-xs text-blue-700">
+                  <span className="font-semibold">SessionID:</span> <span className="font-mono">{sessionId}</span>
+                </div>
+                <div className="text-xs text-blue-700">
+                  <span className="font-semibold">Video#:</span> <span className="font-mono">{videoNumber}</span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(`SessionID: ${sessionId}, Video#: ${videoNumber}`);
+              }}
+              className="px-2 py-1 text-xs bg-white border border-blue-300 rounded text-blue-700 hover:bg-blue-100 transition-colors"
+            >
+              Copy
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       {isVideoLoaded && (
         <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 rounded-t-2xl flex items-center justify-between">
@@ -272,7 +276,7 @@ export function VideoEditorPanel() {
               <h2 className="text-sm font-semibold text-gray-900 truncate">{videoTitle || 'Video Editor'}</h2>
             </div>
           </div>
-          {taskId && (
+          {/* {taskId && (
             <div className="flex items-center gap-4">
               <div className="text-xs bg-white px-3 py-1.5 rounded-full border border-gray-200">
                 <span className="text-gray-600">Task ID: </span>
@@ -285,7 +289,7 @@ export function VideoEditorPanel() {
                 <X size={18} />
               </button>
             </div>
-          )}
+          )} */}
         </div>
       )}
 
@@ -370,58 +374,6 @@ export function VideoEditorPanel() {
               <div>
                 <p className="text-lg font-semibold text-gray-900">No video loaded</p>
                 <p className="text-sm text-gray-600 mt-1">Drag and drop or import a video to get started</p>
-              </div>
-              
-              {/* URL Input Section */}
-              <div className="pt-4 space-y-3">
-                <div className="flex gap-2 justify-center">
-                  <input 
-                    type="text" 
-                    placeholder="Enter video URL (YouTube, TikTok, Instagram, etc.)"
-                    value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleUrlSubmit()}
-                    className="px-4 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none w-80 bg-white"
-                    style={{ 
-                      outlineColor: '#6E56CF',
-                      borderColor: '#6E56CF'
-                    }}
-                    disabled={isSubmitting}
-                  />
-                  <button 
-                    onClick={handleUrlSubmit}
-                    disabled={isSubmitting}
-                    className="px-6 py-2.5 text-white rounded-lg text-sm transition-colors flex items-center gap-2 font-medium disabled:opacity-70"
-                    style={{ backgroundColor: '#6E56CF' }}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader size={16} className="animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      'Submit URL'
-                    )}
-                  </button>
-                </div>
-
-                {/* Error Message */}
-                {uploadError && (
-                  <div className="text-sm text-red-700 bg-red-50 p-3 rounded-lg border border-red-200">
-                    {uploadError}
-                  </div>
-                )}
-
-                {/* Success Message */}
-                {uploadSuccess && (
-                  <div className="text-sm text-green-700 bg-green-50 p-3 rounded-lg border border-green-200">
-                    {uploadSuccess}
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-2">
-                <p className="text-gray-500 text-xs">or</p>
               </div>
               
               <input 

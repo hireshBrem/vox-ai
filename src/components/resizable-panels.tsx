@@ -22,6 +22,8 @@ export function ResizablePanels({
   const [leftWidth, setLeftWidth] = useState(initialLeftWidth);
   const [isDragging, setIsDragging] = useState(false);
   const [agentMode, setAgentMode] = useState<'edit_videos' | 'generate_content'>('edit_videos');
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [videoNumber, setVideoNumber] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || !containerRef.current) return;
@@ -68,47 +70,51 @@ export function ResizablePanels({
         className="flex-shrink-0 min-w-0"
         style={{ width: `${leftWidth}%` }}
       >
-        {/* Toggle */}
-        <div className="pt-2 pb-1 flex justify-center">
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setAgentMode('edit_videos')}
-              className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                agentMode === 'edit_videos'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Scissors size={14} />
-              <span>Edit Videos</span>
-            </button>
-            <button
-              onClick={() => setAgentMode('generate_content')}
-              className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                agentMode === 'generate_content'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Sparkles size={14} />
-              <span>Generate</span>
-            </button>
-          </div>
-        </div>
-        
         {/* Panel Content */}
-        <div className="h-[calc(100%-60px)] px-2">
-          {agentMode === 'edit_videos' ? (
-            <VideoEditorPanel />
-          ) : (
-            <GeneratePanel />
-          )}
+        <div className="h-full px-2 flex flex-col w-full">
+          {/* Toggle */}
+          <div className="py-2 flex justify-center flex-shrink-0 bg-white m-2 rounded-2xl">
+            <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setAgentMode('edit_videos')}
+                className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  agentMode === 'edit_videos'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Scissors size={14} />
+                <span className='px-3'>Edit</span>
+              </button>
+              <button
+                onClick={() => setAgentMode('generate_content')}
+                className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  agentMode === 'generate_content'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Sparkles size={14} />
+                <span>Generate</span>
+              </button>
+            </div>
+          </div>
+          
+          {/* Scrollable Content Area */}
+          <div className="flex-1 min-h-0 flex flex-col pb-2">
+            <div className={agentMode === 'edit_videos' ? 'block h-full w-full' : 'hidden'}>
+              <VideoEditorPanel />
+            </div>
+            <div className={agentMode === 'generate_content' ? 'block h-full w-full' : 'hidden'}>
+              <GeneratePanel />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Resizable Divider */}
       <div
-        className={`group relative flex-shrink-0 w-1 bg-gray-700 hover:bg-gray-600 cursor-col-resize transition-colors ${
+        className={`group relative flex-shrink-0 w-1 bg-neutral-400 hover:bg-neutral-500 cursor-col-resize transition-colors ${
           isDragging ? 'bg-blue-500' : 'dark:border-neutral-800'
         }`}
         onMouseDown={() => setIsDragging(true)}
@@ -127,7 +133,7 @@ export function ResizablePanels({
         className="flex-1 min-w-0 p-2"
         style={{ width: `${100 - leftWidth}%` }}
       >
-        <VoiceAssistantPanel accessToken={accessToken} agentMode={agentMode} />
+        <VoiceAssistantPanel accessToken={accessToken} agentMode={agentMode} sessionId={sessionId} videoNumber={videoNumber} />
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ export default async function Home() {
 
     return (
         <div className="dark h-screen w-screen overflow-hidden text-foreground bg-neutral-300">
+
         <ResizablePanels
             accessToken={accessToken as string}
             initialLeftWidth={70}

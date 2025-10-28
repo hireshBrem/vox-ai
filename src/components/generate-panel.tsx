@@ -116,10 +116,11 @@ export function GeneratePanel() {
                     <ImageIcon size={20} className="text-[#6E56CF]" />
                     Generated Image
                   </h3>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 bg-[#6E56CF] rounded-md text-white cursor-pointer">
                     <Button
                       size="sm"
                       variant="outline"
+                      className='bg-[#6E56CF] cursor-pointer'
                       onClick={() => handleDownload(imageUrl, 'generated-image.jpg')}
                     >
                       <Download size={16} className="mr-1" />
@@ -178,15 +179,18 @@ export function GeneratePanel() {
             )}
 
             {/* Clear button */}
-            <div className="flex justify-center pt-4">
+            {/* <div className="flex justify-center pt-4">
+                <div className="flex gap-2 bg-[#6E56CF] rounded-md text-white cursor-pointer">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleClear}
-              >
-                Clear All
-              </Button>
-            </div>
+                className='bg-[#6E56CF] cursor-pointer'
+                >
+                    Clear All
+                </Button>
+                </div>
+            </div> */}
           </div>
         )}
       </div>

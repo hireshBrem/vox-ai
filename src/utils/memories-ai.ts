@@ -410,7 +410,7 @@ export async function chatPersonal(
       unique_id: uniqueId || 'default',
     };
 
-    const response = await fetch(`${BASE_URL}/serve/api/v1/chat_personal`, {
+    const response = await fetch(`${BASE_URL}/serve/api/v1/chat`, {
       method: 'POST',
       headers: headers as HeadersInit,
       body: JSON.stringify(payload),
@@ -444,7 +444,7 @@ export async function chatPersonalStream(
       unique_id: uniqueId || 'default',
     };
 
-    const response = await fetch(`${BASE_URL}/serve/api/v1/chat_personal_stream`, {
+    const response = await fetch(`${BASE_URL}/serve/api/v1/chat?stream=true`, {
       method: 'POST',
       headers: {
         ...(headers as Record<string, string>),
@@ -668,6 +668,49 @@ export async function getSessionDetails(
     return data;
   } catch (error) {
     console.error('Error getting session details:', error);
+    return null;
+  }
+}
+
+interface QueryVideoRequest {
+  video_nos: string[];
+  prompt: string;
+  session_id?: string;
+  unique_id?: string;
+}
+
+export async function queryVideo(
+  videoNos: string[],
+  prompt: string,
+  sessionId?: string,
+  uniqueId?: string
+): Promise<ChatPersonalResponse | null> {
+  try {
+    const headers = await getAuthHeaders();
+
+    const payload: QueryVideoRequest = {
+      video_nos: videoNos,
+      prompt,
+      session_id: sessionId,
+      unique_id: uniqueId || 'default',
+    };
+
+    const response = await fetch(`${BASE_URL}/serve/api/v1/chat`, {
+      method: 'POST',
+      headers: headers as HeadersInit,
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to query video: ${response.statusText}`);
+      return null;
+    }
+
+    const data = await response.json() as ChatPersonalResponse;
+    console.log('queryVideo response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error querying video:', error);
     return null;
   }
 }

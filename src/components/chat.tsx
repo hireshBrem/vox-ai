@@ -1,23 +1,23 @@
 "use client";
 
 import { VoiceProvider, useVoice, VoiceReadyState } from "@humeai/voice-react";
-import { SparklingSphere } from "@/components/sparkling-sphere";
-import { StartCall } from "@/components/start-call";
 import { Orb } from "@/components/ui/orb"
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { AnimatePresence } from "framer-motion";
 import { motion } from "framer-motion";
-import { Loader2Icon, PhoneIcon, PhoneOffIcon, XIcon } from "lucide-react";
-import { handleToolCall } from "@/utils/hume-tool-handler";
+import { Loader2Icon, PhoneIcon, XIcon } from "lucide-react";
+import { handleToolCall } from "@/utils/hume-ai";
 
 interface ChatProps {
   accessToken: string;
   agentMode: 'edit_videos' | 'generate_content';
+  sessionId?: string | null;
+  videoNumber?: string;
 }
 
-function ChatContent({ accessToken, agentMode }: ChatProps) {
-  const { connect, disconnect, readyState, messages } = useVoice();
+function ChatContent({ accessToken, agentMode, sessionId, videoNumber }: ChatProps) {
+  const { connect, disconnect, readyState, messages, sendSessionSettings } = useVoice();
   const [agentState, setAgentState] = useState<"thinking" | "listening" | "talking" | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
@@ -39,6 +39,52 @@ function ChatContent({ accessToken, agentMode }: ChatProps) {
       setAgentState(null);
     }
   }, [isConnecting, isConnected, isDisconnecting])
+
+  // Inject persistent context for sessionId and videoNumber when connected
+  useEffect(() => {
+    if (isConnected && sessionId && videoNumber) {
+      const contextText = `Current Session: SessionID=${sessionId}, VideoNumber=${videoNumber}. Use this context for all interactions in this session.`;
+      
+      // Use a timeout to ensure the connection is fully established
+      const timer = setTimeout(() => {
+        try {
+          // Construct the session settings message per Hume AI documentation
+          const sessionSettingsMessage = {
+            type: 'session_settings',
+            context: {
+              text: contextText,
+              type: 'persistent' as const
+            }
+          };
+          
+          // Log for debugging and monitoring
+          console.log('✅ Persistent Context Injection Prepared');
+          console.log('   Message:', JSON.stringify(sessionSettingsMessage, null, 2));
+          console.log('   SessionID:', sessionId);
+          console.log('   VideoNumber:', videoNumber);
+          console.log('   Connection Status:', readyState);
+          
+          // Send the session settings via Hume WebSocket
+          if (sendSessionSettings) {
+            sendSessionSettings({
+              context: {
+                text: contextText,
+                type: 'persistent'
+              }
+            });
+            console.log('✅ Context injection sent successfully via WebSocket');
+          } else {
+            console.warn('⚠️ sendSessionSettings method not available on Hume connection');
+          }
+          
+        } catch (err) {
+          console.error('❌ Error preparing context injection:', err);
+        }
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected, sessionId, videoNumber, readyState, sendSessionSettings])
 
   
 
@@ -82,6 +128,15 @@ function ChatContent({ accessToken, agentMode }: ChatProps) {
         {error && (
           <div className="text-sm text-red-700 bg-red-100 p-3 rounded-lg border border-red-300 max-w-md">
             {error}
+          </div>
+        )}
+        {sessionId && videoNumber && (
+          <div className="text-xs bg-purple-50 border border-purple-200 rounded-lg p-3 max-w-md">
+            <p className="font-semibold text-purple-900 mb-1">Session Log</p>
+            <div className="space-y-0.5 text-purple-700">
+              <div><span className="font-medium">SessionID:</span> <span className="font-mono text-purple-600">{sessionId}</span></div>
+              <div><span className="font-medium">Video#:</span> <span className="font-mono text-purple-600">{videoNumber}</span></div>
+            </div>
           </div>
         )}
         <Orb 
@@ -151,7 +206,7 @@ function ChatContent({ accessToken, agentMode }: ChatProps) {
   );
 }
 
-export default function Chat({ accessToken, agentMode }: ChatProps) {
+export default function Chat({ accessToken, agentMode, sessionId, videoNumber }: ChatProps) {
   // Handle tool calls
   const handleToolCallMessage = async (
     message: any,
@@ -189,7 +244,7 @@ export default function Chat({ accessToken, agentMode }: ChatProps) {
 
   return (
     <VoiceProvider onToolCall={handleToolCallMessage}>  
-      <ChatContent accessToken={accessToken} agentMode={agentMode} />
+      <ChatContent accessToken={accessToken} agentMode={agentMode} sessionId={sessionId} videoNumber={videoNumber} />
     </VoiceProvider>
   );
 }

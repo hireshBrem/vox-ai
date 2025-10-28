@@ -1,6 +1,6 @@
 "use server";
 
-import { indexVideoFromURL, getVideoIdByTaskId as getVideoIdByTaskIdUtil, listChatSessions, getSessionDetails } from "@/utils/memories-ai";
+import { indexVideoFromURL, getVideoIdByTaskId as getVideoIdByTaskIdUtil, listChatSessions, getSessionDetails, queryVideo as queryVideoUtil } from "@/utils/memories-ai";
 
 interface UploadVideoFromUrlParams {
   videoUrls: string[];
@@ -412,4 +412,92 @@ export async function getTaskInfo(
     };
   }
 }
+
+interface QueryVideoParams {
+  videoNos: string[];
+  prompt: string;
+  sessionId?: string;
+  uniqueId?: string;
+}
+
+interface QueryVideoResult {
+  success: boolean;
+  response?: any;
+  error?: string;
+}
+
+/**
+ * Server action to query videos using Memories AI chat
+ * @param params - Parameters including video IDs, prompt, session ID, and unique ID
+ * @returns Result with chat response or error message
+ */
+export async function queryVideo(
+  params: QueryVideoParams
+): Promise<QueryVideoResult> {
+  try {
+    const { videoNos, prompt, sessionId, uniqueId } = params;
+
+    // Validate inputs
+    if (!videoNos || videoNos.length === 0) {
+      return {
+        success: false,
+        error: "Video IDs are required",
+      };
+    }
+
+    if (videoNos.some((id) => !id || typeof id !== "string")) {
+      return {
+        success: false,
+        error: "All video IDs must be valid strings",
+      };
+    }
+
+    if (!prompt || typeof prompt !== "string") {
+      return {
+        success: false,
+        error: "Prompt is required and must be a valid string",
+      };
+    }
+
+    // Call the Memories AI API
+    const response = await queryVideoUtil(videoNos, prompt, sessionId, uniqueId);
+    console.log("queryVideo response:", response);
+
+    if (!response) {
+      return {
+        success: false,
+        error: "Failed to query videos",
+      };
+    }
+
+    if (!response.success) {
+      return {
+        success: false,
+        error: response.msg || "Unknown error occurred",
+      };
+    }
+
+    return {
+      success: true,
+      response: {
+        content: response.data?.content,
+        refs: response.data?.refs,
+        thinkings: response.data?.thinkings,
+        sessionId: response.session_id,
+      },
+    };
+  } catch (error) {
+    console.error("Error in queryVideo:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
+  }
+}
+
+export async function queryVideoFunction(){
+    
+}
+
 
