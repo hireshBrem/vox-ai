@@ -210,7 +210,7 @@ async function handleQueryVideo(
     videoNos: string[];
     prompt: string;
     sessionId?: string;
-    uniqueId?: string;
+    uniqueId?: string | null;
   },
   send: HumeSendHelpers
 ): Promise<any> {
@@ -239,7 +239,7 @@ async function handleQueryVideo(
       videoNos: params.videoNos,
       prompt: params.prompt,
       sessionId: params.sessionId,
-      uniqueId: params.uniqueId,
+      uniqueId: params.uniqueId || 'default',
     });
 
     if (!result.success) {

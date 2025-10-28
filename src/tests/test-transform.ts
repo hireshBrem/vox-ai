@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 config({ path: '.env.local' });
 config({ path: '.env' });
 
-import { transformImage, transformVideo } from './src/utils/runware-ai';
+import { transformImage, transformVideo } from '../utils/runware-ai';
 import fs from 'fs';
 import path from 'path';
 
@@ -21,7 +21,7 @@ function fileToDataUri(filePath: string, mimeType: string): string {
  * Test transformImage function
  */
 async function testTransformImage() {
-  console.log('\n========== Testing transformImage ==========\n');
+  console.log('\n========== Testing transformImage ==========' + '\n');
 
   // Load astronaut image as data URI
   let astronautDataUri = '';
@@ -55,7 +55,7 @@ async function testTransformImage() {
  * Test transformVideo function
  */
 async function testTransformVideo() {
-  console.log('\n========== Testing transformVideo ==========\n');
+  console.log('\n========== Testing transformVideo ==========' + '\n');
 
   // Load turtle video as data URI
   let turtleDataUri = '';
@@ -94,7 +94,7 @@ async function runAllTests() {
   try {
     // await testTransformImage();
     await testTransformVideo();
-    console.log('\n========== All tests completed ==========\n');
+    console.log('\n========== All tests completed ==========' + '\n');
   } catch (error) {
     console.error('Test suite error:', error);
     process.exit(1);
@@ -103,3 +103,5 @@ async function runAllTests() {
 
 // Run tests
 runAllTests();
+
+

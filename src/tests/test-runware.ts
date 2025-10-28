@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 config({ path: '.env.local' });
 config({ path: '.env' });
 
-import { getRunwareInstance } from './src/utils/runware-ai';
+import { getRunwareInstance } from '../utils/runware-ai';
 
 async function testGetRunwareInstance() {
   console.log('Testing getRunwareInstance...\n');
@@ -15,7 +15,7 @@ async function testGetRunwareInstance() {
   try {
     const runware = getRunwareInstance();
     console.log('✅ Successfully created Runware instance');
-    console.log('Instance type:', runware.constructor.name);
+    console.log('Instance type:', (runware as any).constructor.name);
     console.log('Instance:', runware);
   } catch (error) {
     console.error('❌ Error creating Runware instance:', error);
@@ -26,4 +26,5 @@ async function testGetRunwareInstance() {
 }
 
 testGetRunwareInstance();
+
 
