@@ -7,14 +7,18 @@
 <h4 align="center">AI video editor using voice</h4>
 
 <p align="center">
-    <a href="#project-overview">Overview</a> •
-    <a href="#team-introduction">Team</a> •
-    <a href="#key-features">Features</a> •
-    <a href="#tech-stack">Tech Stack</a> •
-    <a href="#sponsor-tools-used">Sponsor Tools</a> •
-    <a href="#architecture">Architecture</a> •
-    <a href="#setup-instructions">Setup</a> •
-    <a href="#demo-video">Demo</a>
+    <a href="#-project-overview">Overview</a> •
+    <a href="#-team-introduction">Team</a> •
+    <a href="#-key-features">Features</a> •
+    <a href="#-tech-stack">Tech Stack</a> •
+    <a href="#-sponsor-tools-used">Sponsor Tools</a> •
+    <a href="#-architecture">Architecture</a> •
+    <a href="#-affective-intelligence--human-centered-ux">UX</a> •
+    <a href="#-real-world-value--use-case-scope">Value</a> •
+    <a href="#-demo-video">Demo</a> •
+    <a href="#-challenges--learnings">Learnings</a> •
+    <a href="#-future-improvements--next-steps">Future</a> •
+    <a href="#-contact--links">Contact</a>
 </p>
 
 ---
@@ -309,7 +313,7 @@ Video editing is time-consuming and requires technical expertise. Content creato
 
 ## 🎥 Demo Video
 
-[TODO: Add demo video link here]
+https://storage.googleapis.com/audio_bucket_studiaai/hack.mp4
 
 **Demo Contents:**
 - Voice interaction demonstration

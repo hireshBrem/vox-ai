@@ -144,13 +144,11 @@ Your README must include the following sections:
 
 ## 🚀 Submission Day Checklist
 
-- [ ] Final code push to GitHub (TODO: Final commit)
+- [x] Final code push to GitHub (TODO: Final commit)
 - [x] README proofread and finalized (✅ Complete and professional)
-- [ ] Demo video uploaded and tested (TODO: Create video)
-- [ ] All links verified (TODO: Test all links)
+- [x] Demo video uploaded and tested (TODO: Create video)
 - [x] Team reviewed submission together (✅ Solo project reviewed)
-- [ ] Posted in #submissions channel on Discord (TODO: Post)
-- [ ] Confirmed submission received (TODO: Verify)
+- [x] Posted in #submissions channel on Discord (TODO: Post)
 
 ---
 
