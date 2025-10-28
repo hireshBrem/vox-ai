@@ -24,7 +24,31 @@ export function ResizablePanels({
   const [agentMode, setAgentMode] = useState<'edit_videos' | 'generate_content'>('edit_videos');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [videoNumber, setVideoNumber] = useState<string>('');
+  const [videoUrl, setVideoUrl] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Handle session changes from VideoEditorPanel
+  const handleSessionChange = useCallback((newSessionId: string | null, newVideoNumber: string, newVideoUrl: string) => {
+    console.log('📥 ResizablePanels: Received session change', {
+      newSessionId,
+      newVideoNumber,
+      newVideoUrl
+    });
+    setSessionId(newSessionId);
+    setVideoNumber(newVideoNumber);
+    setVideoUrl(newVideoUrl);
+  }, []);
+
+  // Debug log when passing to VoiceAssistantPanel
+  useEffect(() => {
+    console.log('🎤 ResizablePanels: Passing to VoiceAssistantPanel', {
+      sessionId,
+      videoNumber,
+      videoUrl,
+      agentMode
+    });
+  }, [sessionId, videoNumber, videoUrl, agentMode]);
+
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || !containerRef.current) return;
 
@@ -103,7 +127,7 @@ export function ResizablePanels({
           {/* Scrollable Content Area */}
           <div className="flex-1 min-h-0 flex flex-col pb-2">
             <div className={agentMode === 'edit_videos' ? 'block h-full w-full' : 'hidden'}>
-              <VideoEditorPanel />
+              <VideoEditorPanel onSessionChange={handleSessionChange} />
             </div>
             <div className={agentMode === 'generate_content' ? 'block h-full w-full' : 'hidden'}>
               <GeneratePanel />
@@ -133,7 +157,7 @@ export function ResizablePanels({
         className="flex-1 min-w-0 p-2"
         style={{ width: `${100 - leftWidth}%` }}
       >
-        <VoiceAssistantPanel accessToken={accessToken} agentMode={agentMode} sessionId={sessionId} videoNumber={videoNumber} />
+        <VoiceAssistantPanel accessToken={accessToken} agentMode={agentMode} sessionId={sessionId} videoNumber={videoNumber} videoUrl={videoUrl} />
       </div>
     </div>
   );

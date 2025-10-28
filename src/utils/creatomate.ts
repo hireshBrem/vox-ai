@@ -45,7 +45,8 @@ export async function renderVideo(
     });
 
     if (!response.ok) {
-      throw new Error(`Creatomate API error: ${response.statusText}`);
+        console.log('Creatomate API error:', response.statusText);
+    //   throw new Error(`Creatomate API error: ${response.statusText}`);
     }
 
     const data = await response.json();

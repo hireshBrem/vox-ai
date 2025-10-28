@@ -675,24 +675,18 @@ export async function getSessionDetails(
 interface QueryVideoRequest {
   video_nos: string[];
   prompt: string;
-  session_id?: string;
-  unique_id?: string;
 }
 
 export async function queryVideo(
-  videoNos: string[],
+  videoId: string,
   prompt: string,
-  sessionId?: string,
-  uniqueId?: string
 ): Promise<ChatPersonalResponse | null> {
   try {
     const headers = await getAuthHeaders();
 
     const payload: QueryVideoRequest = {
-      video_nos: videoNos,
+      video_nos: [videoId],
       prompt,
-      session_id: sessionId,
-      unique_id: uniqueId || 'default',
     };
 
     const response = await fetch(`${BASE_URL}/serve/api/v1/chat`, {
@@ -711,6 +705,87 @@ export async function queryVideo(
     return data;
   } catch (error) {
     console.error('Error querying video:', error);
+    return null;
+  }
+}
+
+interface UploadVideoFileResponse {
+  code: string;
+  msg: string;
+  data: {
+    videoNo: string;
+    videoName: string;
+    videoStatus: string;
+    uploadTime: string;
+  };
+  failed: boolean;
+  success: boolean;
+}
+
+export async function uploadVideoFile(
+  file: File,
+  options?: {
+    callback?: string;
+    uniqueId?: string;
+    datetimeTaken?: string;
+    cameraModel?: string;
+    latitude?: string;
+    longitude?: string;
+    tags?: string[];
+    retainOriginalVideo?: boolean;
+    videoTranscriptionPrompt?: string;
+  }
+): Promise<UploadVideoFileResponse | null> {
+  try {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    if (options?.callback) {
+      formData.append('callback', options.callback);
+    }
+    if (options?.uniqueId) {
+      formData.append('unique_id', options.uniqueId);
+    }
+    if (options?.datetimeTaken) {
+      formData.append('datetime_taken', options.datetimeTaken);
+    }
+    if (options?.cameraModel) {
+      formData.append('camera_model', options.cameraModel);
+    }
+    if (options?.latitude) {
+      formData.append('latitude', options.latitude);
+    }
+    if (options?.longitude) {
+      formData.append('longitude', options.longitude);
+    }
+    if (options?.tags && options.tags.length > 0) {
+      options.tags.forEach(tag => formData.append('tags', tag));
+    }
+    if (options?.retainOriginalVideo !== undefined) {
+      formData.append('retain_original_video', String(options.retainOriginalVideo));
+    }
+    if (options?.videoTranscriptionPrompt) {
+      formData.append('video_transcription_prompt', options.videoTranscriptionPrompt);
+    }
+
+    const response = await fetch(`${BASE_URL}/serve/api/v1/upload`, {
+      method: 'POST',
+      headers: {
+        "Authorization": `${process.env.MEMORIES_AI_API_KEY}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to upload video file: ${response.statusText}`);
+      return null;
+    }
+
+    const data = await response.json() as UploadVideoFileResponse;
+    console.log('uploadVideoFile response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error uploading video file:', error);
     return null;
   }
 }

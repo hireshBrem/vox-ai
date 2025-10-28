@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, Scissors, Upload, Download, Loader, X, Search, CheckCircle, Settings } from 'lucide-react';
-import { getVideoIdByTaskId, fetchChatSessions, getSessionDetailsAction, getTaskInfo } from '@/actions';
+import { getVideoIdByTaskId, fetchChatSessions, getSessionDetailsAction, getTaskInfo, uploadVideoByFile } from '@/actions';
 import { motion } from 'framer-motion';
 import { uploadVideo } from '@/utils/filestack';
 
@@ -11,7 +11,11 @@ export interface VideoEditorPanelRef {
   videoNumber: string;
 }
 
-export function VideoEditorPanel() {
+interface VideoEditorPanelProps {
+  onSessionChange?: (sessionId: string | null, videoNumber: string, videoUrl: string) => void;
+}
+
+export function VideoEditorPanel({ onSessionChange }: VideoEditorPanelProps = {}) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -28,6 +32,10 @@ export function VideoEditorPanel() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [uploadedPublicUrl, setUploadedPublicUrl] = useState<string | null>(null);
+  const [memoriesAiUploadStatus, setMemoriesAiUploadStatus] = useState<string | null>(null);
+  const [memoriesAiError, setMemoriesAiError] = useState<string | null>(null);
+  const [trimmedVideoUrl, setTrimmedVideoUrl] = useState<string | null>(null);
+  const [trimmedVideoStatus, setTrimmedVideoStatus] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -44,6 +52,34 @@ export function VideoEditorPanel() {
   const [pageForSessions, setPageForSessions] = useState(1);
   const [sessionIdInput, setSessionIdInput] = useState('');
   const [uniqueIdForDetail, setUniqueIdForDetail] = useState('');
+
+  // Notify parent component when sessionId, videoNumber, or videoUrl changes
+  useEffect(() => {
+    if (onSessionChange) {
+      console.log('📢 VideoEditorPanel: Notifying parent of session change', {
+        sessionId,
+        videoNumber,
+        videoUrl
+      });
+      onSessionChange(sessionId, videoNumber, videoUrl);
+    }
+  }, [sessionId, videoNumber, videoUrl, onSessionChange]);
+
+  // Listen for video trim completion events
+  useEffect(() => {
+    const handleVideoTrimCompleted = (event: CustomEvent) => {
+      const { url, status, renderId } = event.detail;
+      console.log('🎬 Video trim completed:', { url, status, renderId });
+      setTrimmedVideoUrl(url);
+      setTrimmedVideoStatus(status);
+    };
+
+    window.addEventListener('videoTrimCompleted', handleVideoTrimCompleted as EventListener);
+
+    return () => {
+      window.removeEventListener('videoTrimCompleted', handleVideoTrimCompleted as EventListener);
+    };
+  }, []);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -91,6 +127,10 @@ export function VideoEditorPanel() {
     setIsPlaying(false);
     setVideoTitle('');
     setUploadedPublicUrl(null);
+    setMemoriesAiUploadStatus(null);
+    setMemoriesAiError(null);
+    setTrimmedVideoUrl(null);
+    setTrimmedVideoStatus(null);
   };
 
   const handleFetchTaskDetails = async () => {
@@ -180,7 +220,7 @@ export function VideoEditorPanel() {
   return (
     <div className="flex flex-col bg-white text-gray-900 rounded-b-2xl h-full shadow-sm border border-gray-100">
       {/* Task Search Header */}
-      <div className="px-4 py-3 bg-white border-b border-gray-200 flex items-center gap-3 rounded-t-2xl">
+      {/* <div className="px-4 py-3 bg-white border-b border-gray-200 flex items-center gap-3 rounded-t-2xl">
         <div className="flex items-center gap-2 flex-1">
           <input
             type="text"
@@ -224,7 +264,7 @@ export function VideoEditorPanel() {
         >
           <Settings size={20} style={{ color: '#6E56CF' }} />
         </button>
-      </div>
+      </div> */}
 
       {/* Task Details Display */}
       {taskVideos.length > 0 && (
@@ -300,6 +340,74 @@ export function VideoEditorPanel() {
         </div>
       )}
 
+      {/* Memories AI Upload Status */}
+      {memoriesAiUploadStatus && !memoriesAiError && (
+        <div className="px-4 py-3 bg-indigo-50 border-b border-indigo-200 flex items-center gap-3">
+          {isUploadingFile ? (
+            <Loader size={18} className="text-indigo-600 animate-spin" />
+          ) : (
+            <CheckCircle size={18} className="text-indigo-600" />
+          )}
+          <div className="flex-1">
+            <p className="text-sm font-medium text-indigo-900">{memoriesAiUploadStatus}</p>
+            {videoNumber && (
+              <p className="text-xs text-indigo-700 mt-0.5 font-mono">Video No: {videoNumber}</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Memories AI Upload Error */}
+      {memoriesAiError && (
+        <div className="px-4 py-3 bg-orange-50 border-b border-orange-200">
+          <p className="text-sm text-orange-700">Memories AI Error: {memoriesAiError}</p>
+        </div>
+      )}
+
+      {/* Trimmed Video Display */}
+      {trimmedVideoUrl && (
+        <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 space-y-1">
+              <p className="text-xs font-medium text-emerald-900">✂️ Trimmed Video Ready</p>
+              <div className="text-xs text-emerald-700 break-all">
+                <a 
+                  href={trimmedVideoUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:underline font-mono"
+                >
+                  {trimmedVideoUrl}
+                </a>
+              </div>
+              {trimmedVideoStatus && (
+                <p className="text-xs text-emerald-600">Status: {trimmedVideoStatus}</p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(trimmedVideoUrl);
+                }}
+                className="px-2 py-1 text-xs bg-white border border-emerald-300 rounded text-emerald-700 hover:bg-emerald-100 transition-colors"
+              >
+                Copy URL
+              </button>
+              <button
+                onClick={() => {
+                  setVideoUrl(trimmedVideoUrl);
+                  setIsVideoLoaded(true);
+                  setVideoTitle('Trimmed Video');
+                }}
+                className="px-2 py-1 text-xs bg-emerald-600 border border-emerald-600 rounded text-white hover:bg-emerald-700 transition-colors"
+              >
+                Load Video
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       {isVideoLoaded && (
         <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 rounded-t-2xl flex items-center justify-between">
@@ -331,7 +439,7 @@ export function VideoEditorPanel() {
         <div className="flex-1 flex rounded-2xl">
           <div className="flex-1 flex flex-col">
             {/* Video Canvas */}
-            <div className="flex-1 bg-gray-900 flex items-center justify-center border-b border-gray-200">
+            <div className="flex-1 bg-gray-900 flex items-center justify-center border-b border-gray-200 overflow-auto">
               <video
                 ref={videoRef}
                 src={videoUrl}
@@ -419,14 +527,38 @@ export function VideoEditorPanel() {
                     const file = event.target.files[0];
                     setIsUploadingFile(true);
                     setUploadedPublicUrl(null);
+                    setMemoriesAiUploadStatus(null);
+                    setMemoriesAiError(null);
+                    
                     try {
+                      // Upload to Filestack for preview
+                      setMemoriesAiUploadStatus('Uploading to storage...');
                       const publicUrl = await uploadVideo(file);
                       setVideoUrl(publicUrl);
                       setUploadedPublicUrl(publicUrl);
                       setIsVideoLoaded(true);
                       setVideoTitle(file.name);
+                      
+                      // Upload to Memories AI for indexing
+                      setMemoriesAiUploadStatus('Processing with Memories AI...');
+                      const memoriesResult = await uploadVideoByFile({
+                        file: file,
+                        uniqueId: 'default',
+                        tags: ['uploaded-file'],
+                        retainOriginalVideo: true,
+                      });
+                      
+                      if (memoriesResult.success) {
+                        setVideoNumber(memoriesResult.videoNo || '');
+                        setMemoriesAiUploadStatus('Video processed successfully!');
+                        console.log('Memories AI upload successful:', memoriesResult);
+                      } else {
+                        setMemoriesAiError(memoriesResult.error || 'Failed to process with Memories AI');
+                        console.error('Memories AI upload failed:', memoriesResult.error);
+                      }
                     } catch (error) {
                       console.error('Upload failed:', error);
+                      setMemoriesAiError(error instanceof Error ? error.message : 'Upload failed');
                       alert('Failed to upload video. Please try again.');
                     } finally {
                       setIsUploadingFile(false);
@@ -437,12 +569,12 @@ export function VideoEditorPanel() {
               <button 
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploadingFile}
-                className="px-6 py-2.5 hover:bg-gray-100 rounded-lg text-sm text-gray-900 transition-colors border border-gray-300 font-medium bg-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-6 py-2.5 hover:bg-gray-100 rounded-lg text-sm text-gray-900 transition-colors border border-gray-300 font-medium bg-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
               >
                 {isUploadingFile ? (
                   <>
                     <Loader size={16} className="animate-spin" />
-                    Uploading...
+                    {memoriesAiUploadStatus || 'Uploading...'}
                   </>
                 ) : (
                   'Upload File'

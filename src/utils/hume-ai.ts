@@ -224,16 +224,15 @@ async function handleGenerateVideo(
  */
 async function handleQueryVideo(
   params: {
-    videoNos: string[];
+    videoId: string;
     prompt: string;
-    sessionId?: string;
-    uniqueId?: string | null;
   },
   send: HumeSendHelpers
 ): Promise<any> {
   try {
+    console.log('handleQueryVideo params', params);
     // Validate required parameters
-    if (!params.videoNos || params.videoNos.length === 0) {
+    if (!params.videoId || typeof params.videoId !== 'string') {
       return send.error({
         error: 'Missing required parameter',
         code: 'MISSING_PARAM',
@@ -253,10 +252,8 @@ async function handleQueryVideo(
 
     // Call the queryVideo action
     const result = await queryVideo({
-      videoNos: params.videoNos,
+      videoId: params.videoId,
       prompt: params.prompt,
-      sessionId: params.sessionId,
-      uniqueId: params.uniqueId || 'default',
     });
 
     if (!result.success) {
@@ -275,9 +272,9 @@ async function handleQueryVideo(
       refs: result.response?.refs,
       thinkings: result.response?.thinkings,
       sessionId: result.response?.sessionId,
-      videoNos: params.videoNos,
+      videoId: params.videoId,
       prompt: params.prompt,
-      message: `Successfully queried ${params.videoNos.length} video(s): ${result.response?.content}`,
+      message: `Successfully queried video(s): ${result.response?.content}`,
     });
   } catch (error) {
     console.error('Error in handleQueryVideo:', error);
@@ -319,6 +316,9 @@ async function handleTrimVideoTool(
       end: params.end,
     });
 
+    console.log('🎬 Trim video result:', result);
+    console.log('🎬 Result data:', result.data);
+
     if (!result.success || !result.data) {
       return send.error({
         error: 'Video trim failed',
@@ -328,11 +328,35 @@ async function handleTrimVideoTool(
       });
     }
 
+    // Extract data from result - Creatomate returns these properties
+    const renderData = result.data[0] as any;
+    const renderId = renderData.id;
+    const status = renderData.status;
+    const url = renderData.url;
+    const outputFormat = renderData.output_format;
+
+    console.log('🎬 Extracted render data:', { renderId, status, url, outputFormat });
+
+    // Dispatch event to signal that video trim has completed
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('videoTrimCompleted', { 
+        detail: { 
+          renderId,
+          status,
+          url,
+          outputFormat
+        } 
+      }));
+    }
+    console.log('url', url);
+
     return send.success({
       success: true,
-      renderId: result.data.id,
-      status: result.data.status,
-      message: `Successfully submitted trim job (id: ${result.data.id}). Status: ${result.data.status}`,
+      renderId,
+      status,
+      url,
+      outputFormat,
+      message: `Successfully submitted trim job (id: ${renderId}). Status: ${status}. Video URL: ${url}`,
     });
   } catch (error) {
     console.error('Error in handleTrimVideoTool:', error);

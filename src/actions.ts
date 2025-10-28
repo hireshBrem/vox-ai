@@ -1,6 +1,6 @@
 "use server";
 
-import { indexVideoFromURL, getVideoIdByTaskId as getVideoIdByTaskIdUtil, listChatSessions, getSessionDetails, queryVideo as queryVideoUtil } from "@/utils/memories-ai";
+import { indexVideoFromURL, getVideoIdByTaskId as getVideoIdByTaskIdUtil, listChatSessions, getSessionDetails, queryVideo as queryVideoUtil, uploadVideoFile as uploadVideoFileUtil } from "@/utils/memories-ai";
 
 interface UploadVideoFromUrlParams {
   videoUrls: string[];
@@ -414,10 +414,8 @@ export async function getTaskInfo(
 }
 
 interface QueryVideoParams {
-  videoNos: string[];
+  videoId: string;
   prompt: string;
-  sessionId?: string;
-  uniqueId?: string;
 }
 
 interface QueryVideoResult {
@@ -435,20 +433,13 @@ export async function queryVideo(
   params: QueryVideoParams
 ): Promise<QueryVideoResult> {
   try {
-    const { videoNos, prompt, sessionId, uniqueId } = params;
+    const { videoId, prompt } = params;
 
     // Validate inputs
-    if (!videoNos || videoNos.length === 0) {
+    if (!videoId || typeof videoId !== "string") {
       return {
         success: false,
         error: "Video IDs are required",
-      };
-    }
-
-    if (videoNos.some((id) => !id || typeof id !== "string")) {
-      return {
-        success: false,
-        error: "All video IDs must be valid strings",
       };
     }
 
@@ -460,7 +451,7 @@ export async function queryVideo(
     }
 
     // Call the Memories AI API
-    const response = await queryVideoUtil(videoNos, prompt, sessionId, uniqueId);
+    const response = await queryVideoUtil(videoId, prompt);
     console.log("queryVideo response:", response);
 
     if (!response) {
@@ -496,8 +487,86 @@ export async function queryVideo(
   }
 }
 
-export async function queryVideoFunction(){
-    
+
+interface UploadVideoByFileParams {
+  file: File;
+  callback?: string;
+  uniqueId?: string;
+  datetimeTaken?: string;
+  cameraModel?: string;
+  latitude?: string;
+  longitude?: string;
+  tags?: string[];
+  retainOriginalVideo?: boolean;
+  videoTranscriptionPrompt?: string;
 }
 
+interface UploadVideoByFileResult {
+  success: boolean;
+  videoNo?: string;
+  videoName?: string;
+  videoStatus?: string;
+  uploadTime?: string;
+  error?: string;
+}
 
+/**
+ * Server action to upload a video file to Memories AI
+ * @param params - Upload parameters including file and optional metadata
+ * @returns Upload result with video details or error message
+ */
+export async function uploadVideoByFile(
+  params: UploadVideoByFileParams
+): Promise<UploadVideoByFileResult> {
+  try {
+    const { file, ...options } = params;
+
+    // Validate inputs
+    if (!file) {
+      return {
+        success: false,
+        error: "File is required",
+      };
+    }
+
+    if (!(file instanceof File)) {
+      return {
+        success: false,
+        error: "Invalid file object",
+      };
+    }
+
+    // Call the Memories AI API
+    const response = await uploadVideoFileUtil(file, options);
+    console.log('uploadVideoByFile response:', response?.data);
+
+    if (!response) {
+      return {
+        success: false,
+        error: "Failed to upload video file",
+      };
+    }
+
+    if (!response.success) {
+      return {
+        success: false,
+        error: response.msg || "Unknown error occurred",
+      };
+    }
+
+    return {
+      success: true,
+      videoNo: response.data?.videoNo,
+      videoName: response.data?.videoName,
+      videoStatus: response.data?.videoStatus,
+      uploadTime: response.data?.uploadTime,
+    };
+  } catch (error) {
+    console.error("Error in uploadVideoByFile:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
+  }
+}
