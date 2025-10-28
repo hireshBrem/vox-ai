@@ -1,3 +1,7 @@
-- for editing videos, it should index video first using memories.ai, load/wait then 
-use voice agent to apply edits to the videos (tools)
-- create video editing tools as functions using shotstack mcp.
+edit mode:
+- create video editing tools as functions using creatomate free trial.
+- add tools for hume ai for video editing tools
+- add tools for hume ai for quering using memories ai
+
+generate mode:
+- test generate video tool works
