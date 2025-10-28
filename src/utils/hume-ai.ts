@@ -1,5 +1,6 @@
 import { fetchAccessToken } from "hume";
 import { generateImage, generateVideo } from './runware-ai';
+import { handleTrimVideo } from './creatomate';
 import { queryVideo } from '@/actions';
 
 export async function getHumeAccessToken(): Promise<string> {
@@ -55,6 +56,8 @@ export async function handleToolCall(
       return await handleGenerateVideo(parsedParams, send);
     } else if (name === 'query_video') {
       return await handleQueryVideo(parsedParams, send);
+    } else if (name === 'trim_video') {
+      return await handleTrimVideoTool(parsedParams, send);
     } else {
       // Tool not found
       return send.error({
@@ -270,6 +273,60 @@ async function handleQueryVideo(
       code: 'UNEXPECTED_ERROR',
       level: 'error',
       content: error instanceof Error ? error.message : 'An unexpected error occurred during video query',
+    });
+  }
+}
+
+/**
+ * Handle trim_video tool call
+ */
+async function handleTrimVideoTool(
+  params: {
+    video_url: string;
+    start?: number;
+    end?: number;
+  },
+  send: HumeSendHelpers
+): Promise<any> {
+  try {
+    if (!params.video_url || typeof params.video_url !== 'string') {
+      return send.error({
+        error: 'Missing required parameter',
+        code: 'MISSING_PARAM',
+        level: 'warn',
+        content: 'The "video_url" parameter is required and must be a valid string',
+      });
+    }
+
+    // Delegate to Creatomate util with validation
+    const result = await handleTrimVideo({
+      video_url: params.video_url,
+      start: params.start,
+      end: params.end,
+    });
+
+    if (!result.success || !result.data) {
+      return send.error({
+        error: 'Video trim failed',
+        code: 'TRIM_FAILED',
+        level: 'error',
+        content: result.error || 'Failed to trim video. Please verify timings and try again.',
+      });
+    }
+
+    return send.success({
+      success: true,
+      renderId: result.data.id,
+      status: result.data.status,
+      message: `Successfully submitted trim job (id: ${result.data.id}). Status: ${result.data.status}`,
+    });
+  } catch (error) {
+    console.error('Error in handleTrimVideoTool:', error);
+    return send.error({
+      error: 'Video trim error',
+      code: 'UNEXPECTED_ERROR',
+      level: 'error',
+      content: error instanceof Error ? error.message : 'An unexpected error occurred during video trimming',
     });
   }
 }

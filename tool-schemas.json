@@ -41,6 +41,29 @@
           }
         }
       }
+    },
+    {
+      "name": "trim_video",
+      "description": "Trim a video between start and end seconds using Creatomate",
+      "version_description": "Video trim tool with optional start/end",
+      "parameters": {
+        "type": "object",
+        "required": ["video_url"],
+        "properties": {
+          "video_url": {
+            "type": "string",
+            "description": "The url of the video to be edited."
+          },
+          "start": {
+            "type": "integer",
+            "description": "The start time for trim in seconds"
+          },
+          "end": {
+            "type": "integer",
+            "description": "The end time for trim in seconds"
+          }
+        }
+      }
     }
   ]
 }
