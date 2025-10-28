@@ -5,7 +5,12 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "test:creatomate": "npx tsx src/tests/test-creatomate.ts",
+    "test:runware": "npx tsx src/tests/test-runware.ts",
+    "test:transform": "npx tsx src/tests/test-transform.ts",
+    "test:all": "npm run test:creatomate && npm run test:runware && npm run test:transform",
+    "test": "npm run test:all"
   },
   "dependencies": {
     "@elevenlabs/react": "^0.8.1",
